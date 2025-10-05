@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PIN 로그인</title>
+    <style>
+        /* 기본 스타일: 진한 파란색 배경과 하얀색 글씨 */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-color: #0a2342; /* 진한 파란색 배경 */
+            color: white; /* 기본 글씨색을 하얀색으로 */
+            margin: 0;
+        }
+        .login-box { 
+            background: #1c3d5a; /* 로그인 박스 배경색 (배경보다 살짝 밝은 파란 계열) */
+            padding: 2.5rem; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); /* 그림자 효과 조정 */
+            text-align: center; 
+            width: 340px;
+        }
+        /* 제목 스타일 */
+        .login-box h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        /* 설명 텍스트 스타일 */
+        .login-box p {
+            margin-bottom: 1.5rem;
+            color: #d0d0d0; /* 본문 텍스트는 약간 어둡게 */
+        }
+        /* 에러 메시지 스타일 */
+        .error { 
+            color: #ff4d4d; /* 눈에 띄는 밝은 빨간색 */
+            font-weight: bold; 
+            margin-bottom: 1rem;
+        }
+        /* 비밀번호 입력창 스타일 */
+        input[type="password"] { 
+            padding: 14px; 
+            width: 90%; 
+            margin: 10px 0; 
+            border: 1px solid #4a6a8a; /* 테두리 색상 변경 */
+            border-radius: 6px; 
+            background-color: #0a2342; /* 배경색 변경 */
+            color: white; /* 입력 글씨색 변경 */
+            font-size: 1rem;
+        }
+        /* 입력창 placeholder 스타일 */
+        input[type="password"]::placeholder {
+            color: #aaa;
+        }
+        /* 로그인 버튼 스타일 */
+        input[type="submit"] { 
+            padding: 14px 25px; 
+            background-color: #007bff; /* 버튼 색상은 가독성을 위해 밝은 파란색 유지 */
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        /* 로그인 버튼에 마우스를 올렸을 때 효과 */
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>🔒 투자현황</h2>
+        <p>PIN 번호를 입력하세요.</p>
+
+        <!-- 오류 메시지가 있으면 여기에 표시됩니다. -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <p class="error">{{ messages[0] }}</p>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <input type="password" name="pin" required placeholder="PIN Number">
+            <br>
+            <input type="submit" value="로그인">
+        </form>
+    </div>
+</body>
+</html>

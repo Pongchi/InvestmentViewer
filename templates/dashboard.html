@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내 투자 현황</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #0a2342;
+            color: #e0e0e0;
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 900px; 
+            margin: auto; 
+            background: #1c3d5a;
+            padding: 2.5rem; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4a6a8a;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        h1 { 
+            color: white;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        .logout { 
+            text-decoration: none; 
+            color: #00aaff;
+            background-color: #0a2342;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .logout:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        /* 요약 섹션 스타일 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .summary-card {
+            background-color: #0a2342;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .summary-card.profit-border { border-left-color: #28a745; }
+        .summary-card.loss-border { border-left-color: #dc3545; }
+        .summary-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #a0c8e8;
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        .summary-card p {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: white;
+        }
+        .summary-card .profit { color: #28a745; }
+        .summary-card .loss { color: #dc3545; }
+
+        /* 보유 종목 테이블 스타일 */
+        h2 {
+            color: white;
+            border-bottom: 1px solid #4a6a8a;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1.5rem; 
+        }
+        th, td { 
+            border-bottom: 1px solid #4a6a8a; 
+            padding: 15px; 
+            text-align: right; 
+        }
+        th { 
+            background-color: #0a2342;
+            color: #a0c8e8;
+            font-size: 0.9rem;
+        }
+        td {
+            font-size: 1rem;
+        }
+        td:first-child, th:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+        .profit { color: #33cc66; }
+        .loss { color: #ff4d4d; }
+
+        tbody tr.clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        tbody tr.clickable-row:hover {
+            background-color: #2c5d8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 나의 투자 현황</h1>
+            <a href="{{ url_for('logout') }}" class="logout">로그아웃</a>
+        </div>
+
+        <!-- 계좌 요약 정보: 모든 값에 default(0) 필터를 추가하여 예외 처리 -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>순자산</h3>
+                <p>{{ "{:,.0f}".format(summary.nass_amt|default(0)|int) }} 원</p>
+            </div>
+            <div class="summary-card">
+                <h3>총평가금액</h3>
+                <p>{{ "{:,.0f}".format(summary.evlu_amt_smtl_amt|default(0)|int) }} 원</p>
+            </div>
+             <div class="summary-card">
+                <h3>예수금</h3>
+                <p>{{ "{:,.0f}".format(summary.dnca_tot_amt|default(0)|int) }} 원</p>
+            </div>
+            <div class="summary-card {% if (summary.evlu_pfls_smtl_amt|default(0)|int) >= 0 %}profit-border{% else %}loss-border{% endif %}">
+                <h3>총평가손익</h3>
+                <p class="{% if (summary.evlu_pfls_smtl_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+                    {{ "{:,.0f}".format(summary.evlu_pfls_smtl_amt|default(0)|int) }} 원
+                </p>
+            </div>
+        </div>
+
+        <!-- 보유 종목 상세 내역: 모든 값에 default 필터를 추가하여 예외 처리 -->
+        <h2>보유 종목</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>종목명</th>
+                    <th>보유수량</th>
+                    <th>현재가</th>
+                    <th>평가금액</th>
+                    <th>평가손익</th>
+                    <th>수익률</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in details %}
+                <tr class="clickable-row" data-href="{{ url_for('chart_view', code=item.pdno|default('')) }}">
+                    <td>
+                        {{ item.prdt_name|default('N/A') }}
+                        <small style="color: #a0c8e8; display: block;">{{ item.trad_dvsn_name|default('') }}</small>
+                    </td>
+                    <td>{{ "{:,.0f}".format(item.hldg_qty|default(0)|int) }}</td>
+                    <td>{{ "{:,.0f}".format(item.prpr|default(0)|int) }}</td>
+                    <td>{{ "{:,.0f}".format(item.evlu_amt|default(0)|int) }}</td>
+                    <td class="{% if (item.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+                        {{ "{:,.0f}".format(item.evlu_pfls_amt|default(0)|int) }}
+                    </td>
+                    <td class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                        {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }} %
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px;">보유 주식이 없습니다.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rows = document.querySelectorAll('tr[data-href]');
+            rows.forEach(row => {
+                row.addEventListener('click', () => {
+                    // href가 비어있지 않은 경우에만 이동
+                    if (row.dataset.href) {
+                        window.location.href = row.dataset.href;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
