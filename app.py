@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from dotenv import load_dotenv
 import os, requests, json, datetime
-from functools import wraps # <<< [변경] 데코레이터 작성을 위해 wraps를 import 합니다.
+from functools import wraps
 
 load_dotenv() 
 API_KEY = os.getenv("API_KEY")
@@ -16,18 +16,14 @@ app.secret_key = 'API_KEY_SEC'
 
 TOKEN_INFO = {}
 
-# <<< [추가] 액세스 토큰 만료 여부를 확인하는 데코레이터입니다.
 def check_token_expired(f):
     """액세스 토큰의 유효기간을 확인하고, 만료 시 갱신하는 데코레이터"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # TOKEN_INFO에 만료 시간 정보가 있는지 확인합니다.
         if 'access_token_token_expired' in TOKEN_INFO:
             expiry_str = TOKEN_INFO['access_token_token_expired']
-            # 만료 시간 문자열을 datetime 객체로 변환합니다.
             expiry_time = datetime.datetime.strptime(expiry_str, "%Y-%m-%d %H:%M:%S")
-            
-            # 현재 시간이 만료 시간을 지났는지 확인합니다.
+
             if datetime.datetime.now() >= expiry_time:
                 get_accesstoken()
         else:
@@ -96,23 +92,72 @@ def get_itemchartprice(code):
     })
     return res.json()
 
+def get_account_info_us():
+    res = requests.get(f"{API_BASE_URL}/uapi/overseas-stock/v1/trading/inquire-balance", headers={
+        'content-type': 'application/json; charset=utf-8',
+        'authorization': f'{TOKEN_INFO.get("token_type")} {TOKEN_INFO.get("access_token")}',
+        'appkey': API_KEY,
+        'appsecret': API_KEY_SEC,
+        'tr_id': 'TTTS3012R'
+    }, params={
+        'CANO': CANO,
+        'ACNT_PRDT_CD': ACNT_PRDT_CD,
+        'OVRS_EXCG_CD': 'NASD',
+        'TR_CRCY_CD': 'USD',
+        'CTX_AREA_FK200': '',
+        'CTX_AREA_NK200': ''
+    })
+
+    return res.json()
+
+def get_itemchartprice_us(symbol):
+    res = requests.get(f"{API_BASE_URL}/uapi/overseas-price/v1/quotations/dailyprice", headers={
+        'content-type': 'application/json; charset=utf-8',
+        'authorization': f'{TOKEN_INFO.get("token_type")} {TOKEN_INFO.get("access_token")}',
+        'appkey': API_KEY,
+        'appsecret': API_KEY_SEC,
+        'tr_id': 'HHDFS76240000',
+        'personalseckey': ''
+    }, params={
+        'AUTH': '',
+        'EXCD': 'NAS',
+        'SYMB': symbol,
+        'GUBN': '0',
+        'BYMD': '',
+        'MODP': '0',
+    })
+    return res.json()
+
 @app.route('/')
 @check_token_expired
 def home():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
-    account_data = get_account_info()
-    filtered_details = [item for item in account_data.get('output1', []) if int(item.get('hldg_qty', 0)) > 0]
-    summary_data = account_data.get('output2', [{}])[0]
-    
+    # --- 국내 주식 정보 조회 ---
+    account_kr = get_account_info()
+    details_kr = [item for item in account_kr.get('output1', []) if int(item.get('hldg_qty', 0)) > 0]
+    summary_kr = account_kr.get('output2', [{}])[0]
+
+    # --- 해외 주식 정보 조회 ---
+    account_us = get_account_info_us()
+    details_us = [item for item in account_us.get('output1', []) if int(item.get('ovrs_cblc_qty', 0)) > 0]
+    summary_us = account_us.get('output2', {})
+
+    # [수정] 해외주식 총평가금액 계산
+    if details_us and summary_us:
+        total_evaluation_us = sum(float(item.get('ovrs_stck_evlu_amt', 0)) for item in details_us)
+        summary_us['total_evaluation_us'] = total_evaluation_us
+
     return render_template(
         'dashboard.html', 
-        details=filtered_details, 
-        summary=summary_data
+        details_kr=details_kr, 
+        summary_kr=summary_kr,
+        details_us=details_us,
+        summary_us=summary_us
     )
 
-@app.route('/<string:code>')
+@app.route('/chart_kr/<string:code>')
 @check_token_expired
 def chart_view(code):
     if not session.get('logged_in'):
@@ -123,8 +168,39 @@ def chart_view(code):
     chart_data = get_itemchartprice(code)
 
     return render_template(
-        'chart.html',
+        'chart_kr.html',
         item_info=chart_data.get('output1'),
+        chart_data=json.dumps(chart_data),
+        holding_info=holding_info
+    )
+
+@app.route('/chart_us/<string:symbol>')
+@check_token_expired
+def chart_view_us(symbol):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    account_us = get_account_info_us()
+    holding_info = next((item for item in account_us.get('output1', []) if item.get('ovrs_pdno') == symbol), None)
+    
+    chart_data = get_itemchartprice_us(symbol)
+    
+    # API 응답에서 필요한 정보를 조합하여 item_info 생성
+    item_info = chart_data.get('output1', {})  # 전일 대비 등락 정보
+    daily_data = chart_data.get('output2', [])
+    if daily_data:
+        item_info.update(daily_data[0]) # 최신 일자 데이터(종가, 시가 등) 추가
+    
+    # 종목명, 심볼은 잔고 정보에서 가져와 추가 (없을 경우 symbol 사용)
+    if holding_info:
+        item_info['ovrs_item_name'] = holding_info.get('ovrs_item_name', symbol)
+    else:
+        item_info['ovrs_item_name'] = symbol
+    item_info['ovrs_pdno'] = symbol
+        
+    return render_template(
+        'chart_us.html',
+        item_info=item_info,
         chart_data=json.dumps(chart_data),
         holding_info=holding_info
     )

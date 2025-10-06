@@ -58,7 +58,7 @@
             gap: 15px;
             text-align: left;
             margin-bottom: 2rem;
-            min-height: 60px; /* 데이터가 없을 때도 최소 높이 유지 */
+            min-height: 60px;
         }
         .current-price-group .current-price {
             font-size: 2.2rem;
@@ -116,13 +116,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- item_info가 없을 경우를 대비하여 default 값 추가 -->
             <h1>📈 {{ item_info.hts_kor_isnm|default('종목 정보 없음') }} ({{ item_info.stck_shrn_iscd|default('') }})</h1>
             <a href="{{ url_for('home') }}" class="back-link">돌아가기</a>
         </div>
 
-        <!-- item_info 객체가 존재할 때만 가격 및 차트 정보를 표시 -->
-        {% if item_info %}
+        {% if item_info and item_info.rt_cd != '1' %}
         <div class="price-info">
             <div class="current-price-group">
                 <p class="current-price">{{ "{:,.0f}".format(item_info.stck_prpr|default(0)|int) }} 원</p>
@@ -140,7 +138,7 @@
             <div class="holding-details">
                 <p>
                     <span class="label">평단가</span>
-                    <span class="value">{{ "{:,.0f}".format(holding_info.pchs_avg_pric|default(0)|int) }}원</span>
+                    <span class="value">{{ "{:,.0f}".format(holding_info.pchs_avg_pric|default(0)|float) }}원</span>
                     <span class="label">보유수량</span>
                     <span class="value">{{ "{:,.0f}".format(holding_info.hldg_qty|default(0)|int) }}주</span>
                 </p>
@@ -157,18 +155,16 @@
         </div>
         
         {% else %}
-        <!-- item_info가 없는 경우 오류 메시지 표시 -->
         <div class="error-message">
-            <p>종목 정보를 불러올 수 없습니다.</p>
+            <p>종목 정보를 불러올 수 없습니다. ({{ chart_data.msg1 }})</p>
         </div>
         {% endif %}
     </div>
 
     <script>
-        // item_info가 있을 때만 차트 스크립트를 실행
-        {% if item_info %}
+        {% if item_info and item_info.rt_cd != '1' %}
         const chartData = JSON.parse('{{ chart_data|safe }}');
-        const dailyPrices = chartData.output2 || []; // output2가 없을 경우 빈 배열로 처리
+        const dailyPrices = chartData.output2 || [];
 
         Chart.defaults.locale = 'ko';
 
@@ -184,60 +180,37 @@
 
         const startPrice = lineData.length > 0 ? lineData[0].y : 0;
         const endPrice = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
-        const trendColor = endPrice >= startPrice ? '#42a5f5' : '#ef5350';
+        const trendColor = endPrice >= startPrice ? '#ef5350' : '#42a5f5';
 
         const ctx = document.getElementById('stockChart').getContext('2d');
         new Chart(ctx, {
             data: {
                 datasets: [{
-                    type: 'line',
-                    label: '주가',
-                    data: lineData,
-                    yAxisID: 'yPrice',
-                    borderColor: trendColor,
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.1,
-                    fill: true,
+                    type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
+                    borderColor: trendColor, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
                     backgroundColor: (context) => {
-                        const chart = context.chart;
-                        const {ctx, chartArea} = chart;
+                        const {ctx, chartArea} = context.chart;
                         if (!chartArea) { return null; }
                         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
                         gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                        const color = endPrice >= startPrice ? '66, 165, 245' : '239, 83, 80';
+                        const color = endPrice >= startPrice ? '239, 83, 80' : '66, 165, 245';
                         gradient.addColorStop(1, `rgba(${color}, 0.3)`);
                         return gradient;
                     },
                 }, {
-                    type: 'bar',
-                    label: '거래량',
-                    data: volumeData,
-                    yAxisID: 'yVolume',
+                    type: 'bar', label: '거래량', data: volumeData, yAxisID: 'yVolume',
                     backgroundColor: 'rgba(110, 137, 161, 0.5)'
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
+                responsive: true, maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: {
                         type: 'time',
-                        time: {
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'M월 d일'
-                            }
-                        },
+                        time: { unit: 'day', displayFormats: { day: 'M월 d일' }},
                         grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { 
-                            color: '#e0e0e0',
-                            source: 'auto'
-                        }
+                        ticks: { color: '#e0e0e0', source: 'auto' }
                     },
                     yPrice: {
                         position: 'left',
@@ -248,8 +221,7 @@
                         }
                     },
                     yVolume: {
-                        position: 'right',
-                        min: 0,
+                        position: 'right', min: 0,
                         grid: { drawOnChartArea: false },
                         ticks: { 
                             color: '#e0e0e0',
@@ -262,16 +234,12 @@
                     }
                 },
                 plugins: {
-                    legend: {
-                        labels: { color: '#e0e0e0' }
-                    },
+                    legend: { labels: { color: '#e0e0e0' } },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
+                                if (label) { label += ': '; }
                                 if (context.parsed.y !== null) {
                                     if (context.dataset.type === 'line') {
                                         label += new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(context.parsed.y);
