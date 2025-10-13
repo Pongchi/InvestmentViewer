@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PIN 로그인</title>
     <style>
         /* 기본 스타일: 진한 파란색 배경과 하얀색 글씨 */
@@ -14,14 +15,16 @@
             background-color: #0a2342; /* 진한 파란색 배경 */
             color: white; /* 기본 글씨색을 하얀색으로 */
             margin: 0;
+            padding: 0 1rem; /* 모바일 화면 좌우 여백 추가 */
         }
         .login-box { 
-            background: #1c3d5a; /* 로그인 박스 배경색 (배경보다 살짝 밝은 파란 계열) */
+            background: #1c3d5a; /* 로그인 박스 배경색 */
             padding: 2.5rem; 
             border-radius: 12px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); /* 그림자 효과 조정 */
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); /* 그림자 효과 */
             text-align: center; 
             width: 340px;
+            box-sizing: border-box; /* 패딩과 테두리를 너비에 포함 */
         }
         /* 제목 스타일 */
         .login-box h2 {
@@ -32,7 +35,7 @@
         /* 설명 텍스트 스타일 */
         .login-box p {
             margin-bottom: 1.5rem;
-            color: #d0d0d0; /* 본문 텍스트는 약간 어둡게 */
+            color: #d0d0d0;
         }
         /* 에러 메시지 스타일 */
         .error { 
@@ -45,11 +48,12 @@
             padding: 14px; 
             width: 90%; 
             margin: 10px 0; 
-            border: 1px solid #4a6a8a; /* 테두리 색상 변경 */
+            border: 1px solid #4a6a8a; /* 테두리 색상 */
             border-radius: 6px; 
-            background-color: #0a2342; /* 배경색 변경 */
-            color: white; /* 입력 글씨색 변경 */
+            background-color: #0a2342; /* 배경색 */
+            color: white; /* 입력 글씨색 */
             font-size: 1rem;
+            box-sizing: border-box;
         }
         /* 입력창 placeholder 스타일 */
         input[type="password"]::placeholder {
@@ -58,20 +62,42 @@
         /* 로그인 버튼 스타일 */
         input[type="submit"] { 
             padding: 14px 25px; 
-            background-color: #007bff; /* 버튼 색상은 가독성을 위해 밝은 파란색 유지 */
+            background-color: #007bff; /* 버튼 색상 */
             color: white; 
             border: none; 
             border-radius: 6px; 
             cursor: pointer; 
-            width: 100%;
+            width: 93%; /* 입력창과 너비 맞춤 */
             font-size: 1.1rem;
             font-weight: bold;
             margin-top: 1rem;
             transition: background-color 0.3s ease;
+            box-sizing: border-box;
         }
         /* 로그인 버튼에 마우스를 올렸을 때 효과 */
         input[type="submit"]:hover {
             background-color: #0056b3;
+        }
+
+        /* --- 모바일 전용 스타일 --- */
+        /* 화면 너비가 768px 이하일 때 적용 */
+        @media (max-width: 768px) {
+            .login-box {
+                width: 100%; /* 화면 너비에 꽉 채움 */
+                max-width: 400px; /* 최대 너비 제한 */
+                padding: 2rem; /* 패딩 약간 줄임 */
+            }
+            .login-box h2 {
+                font-size: 1.6rem; /* 제목 글자 크기 조정 */
+            }
+            .login-box p {
+                font-size: 0.9rem; /* 본문 글자 크기 조정 */
+            }
+            input[type="password"], input[type="submit"] {
+                width: 100%; /* 입력창과 버튼 너비를 100%로 설정 */
+                padding: 16px; /* 터치하기 쉽도록 패딩 늘림 */
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
@@ -80,7 +106,6 @@
         <h2>🔒 투자현황</h2>
         <p>PIN 번호를 입력하세요.</p>
 
-        <!-- 오류 메시지가 있으면 여기에 표시됩니다. -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <p class="error">{{ messages[0] }}</p>
