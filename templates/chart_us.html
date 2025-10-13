@@ -2,11 +2,10 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ item_info.ovrs_item_name|default('시세 차트') }} - 시세 차트</title>
-    <!-- 차트 라이브러리 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@^3"></script>
-    <!-- date-fns 한국어 로케일 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/ko/index.js"></script>
 
     <style>
@@ -32,6 +31,7 @@
             border-bottom: 1px solid #4a6a8a;
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap; /* 헤더 줄바꿈 허용 */
         }
         h1 { 
             color: white;
@@ -46,6 +46,7 @@
             border-radius: 6px;
             font-weight: bold;
             transition: background-color 0.3s ease;
+            white-space: nowrap;
         }
         .back-link:hover {
             background-color: #007bff;
@@ -59,6 +60,7 @@
             text-align: left;
             margin-bottom: 2rem;
             min-height: 60px;
+            flex-wrap: wrap;
         }
         .current-price-group .current-price {
             font-size: 2.2rem;
@@ -83,20 +85,30 @@
         .holding-details {
             text-align: right;
         }
-        .holding-details p {
-            margin: 0 0 8px 0;
-            font-size: 1rem;
-            color: #a0c8e8;
+        /* [추가] 모바일 레이아웃을 위한 상세 정보 구조 스타일 */
+        .holding-details .detail-group {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        .holding-details .detail-item {
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
         }
         .holding-details .label {
             font-weight: normal;
-            margin-left: 12px;
+            color: #a0c8e8;
+            font-size: 1rem;
         }
         .holding-details .value {
             font-weight: bold;
             color: white;
+            font-size: 1rem;
         }
         .holding-details .pl-value {
+            margin: 0;
             font-size: 1.2rem;
             font-weight: bold;
         }
@@ -105,11 +117,45 @@
             background-color: #0a2342;
             padding: 1rem;
             border-radius: 8px;
+            /* [수정] 차트 컨테이너에 비율과 최대 높이 지정 */
+            aspect-ratio: 16 / 10;
+            max-height: 600px;
+            width: 100%;
         }
         .error-message {
             text-align: center;
             padding: 4rem;
             font-size: 1.2rem;
+        }
+
+        /* --- [추가] 모바일 반응형 스타일 --- */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 1rem; }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            h1 { font-size: 1.4rem; }
+            .price-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            .current-price-group .current-price { font-size: 1.8rem; }
+            .holding-details {
+                width: 100%;
+                text-align: left;
+            }
+            .holding-details .detail-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .chart-container {
+                aspect-ratio: 4 / 3; /* 모바일에서 더 적절한 비율로 조정 */
+            }
         }
     </style>
 </head>
@@ -136,12 +182,16 @@
             
             {% if holding_info %}
             <div class="holding-details">
-                <p>
-                    <span class="label">평단가</span>
-                    <span class="value">${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</span>
-                    <span class="label">보유수량</span>
-                    <span class="value">{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</span>
-                </p>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <span class="label">평단가</span>
+                        <span class="value">${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">보유수량</span>
+                        <span class="value">{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</span>
+                    </div>
+                </div>
                 <p class="pl-value {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
                     ${{ "{:,.2f}".format(holding_info.frcr_evlu_pfls_amt|default(0)|float) }}
                     ({{ "%.2f"|format(holding_info.evlu_pfls_rt|default(0)|float) }}%)
@@ -162,101 +212,99 @@
     </div>
 
     <script>
-        {% if item_info and item_info.rt_cd != '1' %}
-        const chartData = JSON.parse('{{ chart_data|safe }}');
-        const dailyPrices = chartData.output2 || [];
+    {% if item_info and item_info.rt_cd != '1' %}
+    const chartData = JSON.parse('{{ chart_data|safe }}');
+    const dailyPrices = chartData.output2 || [];
+    Chart.defaults.locale = 'ko';
 
-        Chart.defaults.locale = 'ko';
+    const lineData = dailyPrices.map(item => ({
+        x: new Date(item.xymd.substring(0, 4) + '-' + item.xymd.substring(4, 6) + '-' + item.xymd.substring(6, 8)).getTime(),
+        y: parseFloat(item.clos)
+    }));
+    
+    const volumeData = dailyPrices.map(item => ({
+        x: new Date(item.xymd.substring(0, 4) + '-' + item.xymd.substring(4, 6) + '-' + item.xymd.substring(6, 8)).getTime(),
+        y: parseFloat(item.tvol)
+    }));
 
-        // [수정] 날짜 키를 'stck_dt'에서 'xymd'로 변경
-        const lineData = dailyPrices.map(item => ({
-            x: new Date(item.xymd.substring(0, 4) + '-' + item.xymd.substring(4, 6) + '-' + item.xymd.substring(6, 8)).getTime(),
-            y: parseFloat(item.clos)
-        }));
-        
-        // [수정] 거래량 키를 'tvol'로 변경
-        const volumeData = dailyPrices.map(item => ({
-            x: new Date(item.xymd.substring(0, 4) + '-' + item.xymd.substring(4, 6) + '-' + item.xymd.substring(6, 8)).getTime(),
-            y: parseFloat(item.tvol)
-        }));
+    const startPrice = lineData.length > 0 ? lineData[0].y : 0;
+    const endPrice = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
+    const trendColor = endPrice >= startPrice ? '#ef5350' : '#42a5f5';
 
-        const startPrice = lineData.length > 0 ? lineData[0].y : 0;
-        const endPrice = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
-        const trendColor = endPrice >= startPrice ? '#ef5350' : '#42a5f5';
-
-        const ctx = document.getElementById('stockChart').getContext('2d');
-        new Chart(ctx, {
-            data: {
-                datasets: [{
-                    type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
-                    borderColor: trendColor, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
-                    backgroundColor: (context) => {
-                        const {ctx, chartArea} = context.chart;
-                        if (!chartArea) { return null; }
-                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                        const color = endPrice >= startPrice ? '239, 83, 80' : '66, 165, 245';
-                        gradient.addColorStop(1, `rgba(${color}, 0.3)`);
-                        return gradient;
-                    },
-                }, {
-                    type: 'bar', label: '거래량', data: volumeData, yAxisID: 'yVolume',
-                    backgroundColor: 'rgba(110, 137, 161, 0.5)'
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: 'day', displayFormats: { day: 'M월 d일' }},
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#e0e0e0', source: 'auto' }
-                    },
-                    yPrice: {
-                        position: 'left',
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { 
-                            color: '#e0e0e0',
-                            callback: function(value) { return '$' + value.toLocaleString(); }
-                        }
-                    },
-                    yVolume: {
-                        position: 'right', min: 0,
-                        grid: { drawOnChartArea: false },
-                        ticks: { 
-                            color: '#e0e0e0',
-                             callback: function(value) {
-                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                                if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
-                                return value;
-                            }
-                        }
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctx, {
+        data: {
+            datasets: [{
+                type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
+                borderColor: trendColor, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
+                backgroundColor: (context) => {
+                    const {ctx, chartArea} = context.chart;
+                    if (!chartArea) { return null; }
+                    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                    const color = endPrice >= startPrice ? '239, 83, 80' : '66, 165, 245';
+                    gradient.addColorStop(1, `rgba(${color}, 0.3)`);
+                    return gradient;
+                },
+            }, {
+                type: 'bar', label: '거래량', data: volumeData, yAxisID: 'yVolume',
+                backgroundColor: 'rgba(110, 137, 161, 0.5)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, /* ✅ [수정] 차트가 컨테이너를 꽉 채우도록 false로 변경 */
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', displayFormats: { day: 'M월 d일' }},
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#e0e0e0', source: 'auto' }
+                },
+                yPrice: {
+                    position: 'left',
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { 
+                        color: '#e0e0e0',
+                        callback: function(value) { return '$' + value.toLocaleString(); }
                     }
                 },
-                plugins: {
-                    legend: { labels: { color: '#e0e0e0' } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) { label += ': '; }
-                                if (context.parsed.y !== null) {
-                                    if (context.dataset.type === 'line') {
-                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
-                                    } else {
-                                        label += context.parsed.y.toLocaleString();
-                                    }
+                yVolume: {
+                    position: 'right', min: 0,
+                    grid: { drawOnChartArea: false },
+                    ticks: { 
+                        color: '#e0e0e0',
+                        callback: function(value) {
+                            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                            if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#e0e0e0' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                if (context.dataset.type === 'line') {
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                } else {
+                                    label += context.parsed.y.toLocaleString();
                                 }
-                                return label;
                             }
+                            return label;
                         }
                     }
                 }
             }
-        });
-        {% endif %}
+        }
+    });
+    {% endif %}
     </script>
 </body>
 </html>
