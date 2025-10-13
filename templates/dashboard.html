@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 투자 현황</title>
     <style>
         body { 
@@ -26,6 +27,7 @@
             border-bottom: 1px solid #4a6a8a;
             padding-bottom: 1rem;
             margin-bottom: 2rem;
+            flex-wrap: wrap; /* [수정] 모바일에서 줄바꿈이 가능하도록 설정 */
         }
         h1 { 
             color: white;
@@ -168,7 +170,73 @@
             background-color: #2c5d8a;
         }
         
-        #overseas-view { display: none; } /* 해외주식 뷰는 기본적으로 숨김 */
+        #overseas-view { display: none; }
+
+        /* --- [추가] 모바일 반응형 스타일 --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .summary-card p {
+                font-size: 1.3rem;
+            }
+
+            /* --- 반응형 테이블 스타일 --- */
+            table thead {
+                display: none;
+            }
+            table, table tbody, table tr, table td {
+                display: block;
+                width: 100%;
+            }
+            table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #4a6a8a;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            table td {
+                /* ✅ [수정] 이 한 줄을 추가하여 박스 크기 계산 문제를 해결합니다. */
+                box-sizing: border-box; 
+                text-align: right;
+                padding-left: 50%; 
+                position: relative;
+                border-bottom: 1px dotted #4a6a8a;
+            }
+            table td:last-child {
+                border-bottom: none;
+            }
+            table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: 45%;
+                padding-right: 10px;
+                text-align: left;
+                font-weight: bold;
+                color: #a0c8e8;
+            }
+            table td:first-child {
+                background-color: #0a2342;
+                text-align: center;
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+            table td:first-child::before {
+                content: "";
+            }
+        }
     </style>
 </head>
 <body>
@@ -186,7 +254,6 @@
             <a href="{{ url_for('logout') }}" class="logout">로그아웃</a>
         </div>
 
-        <!-- 국내 주식 뷰 -->
         <div id="domestic-view">
             <div class="summary-grid">
                 <div class="summary-card">
@@ -224,17 +291,17 @@
                 <tbody>
                     {% for item in details_kr %}
                     <tr class="clickable-row" data-href="{{ url_for('chart_view', code=item.pdno|default('')) }}">
-                        <td>
+                        <td data-label="종목명">
                             {{ item.prdt_name|default('N/A') }}
                             <small style="color: #a0c8e8; display: block;">{{ item.trad_dvsn_name|default('') }}</small>
                         </td>
-                        <td>{{ "{:,.0f}".format(item.hldg_qty|default(0)|int) }}</td>
-                        <td>{{ "{:,.0f}".format(item.prpr|default(0)|int) }}</td>
-                        <td>{{ "{:,.0f}".format(item.evlu_amt|default(0)|int) }}</td>
-                        <td class="{% if (item.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+                        <td data-label="보유수량">{{ "{:,.0f}".format(item.hldg_qty|default(0)|int) }}</td>
+                        <td data-label="현재가">{{ "{:,.0f}".format(item.prpr|default(0)|int) }}</td>
+                        <td data-label="평가금액">{{ "{:,.0f}".format(item.evlu_amt|default(0)|int) }}</td>
+                        <td data-label="평가손익" class="{% if (item.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
                             {{ "{:,.0f}".format(item.evlu_pfls_amt|default(0)|int) }}
                         </td>
-                        <td class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                        <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
                             {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }} %
                         </td>
                     </tr>
@@ -245,7 +312,6 @@
             </table>
         </div>
 
-        <!-- 해외 주식 뷰 -->
         <div id="overseas-view">
             <div class="summary-grid">
                 <div class="summary-card">
@@ -284,16 +350,15 @@
                 </thead>
                 <tbody>
                     {% for item in details_us %}
-                    <!-- [수정] 해외 주식 행에 클릭 기능 추가 -->
                     <tr class="clickable-row" data-href="{{ url_for('chart_view_us', symbol=item.ovrs_pdno|default('')) }}">
-                        <td>{{ item.ovrs_item_name|default('N/A') }}</td>
-                        <td>{{ "{:,.0f}".format(item.ovrs_cblc_qty|default(0)|int) }}</td>
-                        <td>${{ "{:,.2f}".format(item.now_pric2|default(0)|float) }}</td>
-                        <td>${{ "{:,.2f}".format(item.ovrs_stck_evlu_amt|default(0)|float) }}</td>
-                        <td class="{% if (item.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                         <td data-label="종목명">{{ item.ovrs_item_name|default('N/A') }}</td>
+                        <td data-label="보유수량">{{ "{:,.0f}".format(item.ovrs_cblc_qty|default(0)|int) }}</td>
+                        <td data-label="현재가">${{ "{:,.2f}".format(item.now_pric2|default(0)|float) }}</td>
+                        <td data-label="평가금액">${{ "{:,.2f}".format(item.ovrs_stck_evlu_amt|default(0)|float) }}</td>
+                        <td data-label="평가손익" class="{% if (item.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
                             ${{ "{:,.2f}".format(item.frcr_evlu_pfls_amt|default(0)|float) }}
                         </td>
-                        <td class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                        <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
                             {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }} %
                         </td>
                     </tr>
@@ -307,7 +372,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // [수정] 모든 클릭 가능한 행에 이벤트 리스너를 한 번에 추가
             const clickableRows = document.querySelectorAll('tr[data-href]');
             clickableRows.forEach(row => {
                 row.addEventListener('click', () => {
@@ -317,7 +381,6 @@
                 });
             });
 
-            // 국내/해외 토글 스위치 이벤트
             const marketSwitch = document.getElementById('market-switch');
             const domesticView = document.getElementById('domestic-view');
             const overseasView = document.getElementById('overseas-view');
@@ -335,4 +398,3 @@
     </script>
 </body>
 </html>
-
