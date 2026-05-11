@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from dotenv import load_dotenv
-import os, requests, json, datetime
+from pathlib import Path
+import os, requests, json, datetime, logging, threading
 from functools import wraps
 
-load_dotenv() 
+load_dotenv()
 API_KEY = os.getenv("API_KEY")
 API_KEY_SEC = os.getenv("API_KEY_SECRET")
 API_BASE_URL = os.getenv("API_BASE_URL")
@@ -11,45 +12,130 @@ PIN = os.getenv("PIN_NUMBER")
 CANO = os.getenv("CANO")
 ACNT_PRDT_CD = os.getenv("ACNT_PRDT_CD")
 
+# 토큰 디스크 캐시 — 컨테이너 재시작 시에도 살아있는 토큰 재사용
+TOKEN_CACHE_PATH = Path(os.getenv("TOKEN_CACHE_PATH", "/app/cache/token_cache.json"))
+# 만료 N분 전에 미리 갱신 (clock skew/네트워크 지연 마진)
+TOKEN_REFRESH_MARGIN_MIN = 5
+
 app = Flask(__name__)
 app.secret_key = 'API_KEY_SEC'
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+
 TOKEN_INFO = {}
+_token_lock = threading.Lock()
+
+
+def _parse_expiry(s):
+    return datetime.datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+
+
+def _token_is_valid(info):
+    exp_str = info.get('access_token_token_expired')
+    if not exp_str:
+        return False
+    try:
+        exp = _parse_expiry(exp_str)
+    except Exception:
+        return False
+    margin = datetime.timedelta(minutes=TOKEN_REFRESH_MARGIN_MIN)
+    return datetime.datetime.now() < exp - margin
+
+
+def load_cached_token():
+    """부팅 시 디스크 캐시에서 살아있는 토큰 복원"""
+    if not TOKEN_CACHE_PATH.exists():
+        return
+    try:
+        data = json.loads(TOKEN_CACHE_PATH.read_text())
+        if _token_is_valid(data):
+            TOKEN_INFO.update(data)
+            app.logger.info(
+                f"디스크 캐시에서 토큰 로드 (만료: {data.get('access_token_token_expired')})"
+            )
+        else:
+            app.logger.info("디스크 캐시 토큰이 이미 만료됨, 새로 발급 예정")
+    except Exception as e:
+        app.logger.warning(f"토큰 캐시 로드 실패: {e}")
+
+
+def save_token_cache():
+    try:
+        TOKEN_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        TOKEN_CACHE_PATH.write_text(json.dumps(TOKEN_INFO))
+    except Exception as e:
+        app.logger.warning(f"토큰 캐시 저장 실패: {e}")
+
 
 def check_token_expired(f):
-    """액세스 토큰의 유효기간을 확인하고, 만료 시 갱신하는 데코레이터"""
+    """액세스 토큰의 유효기간을 확인하고, 만료 임박/만료 시 갱신.
+    갱신 실패 시 503 응답으로 명시적 알림."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'access_token_token_expired' in TOKEN_INFO:
-            expiry_str = TOKEN_INFO['access_token_token_expired']
-            expiry_time = datetime.datetime.strptime(expiry_str, "%Y-%m-%d %H:%M:%S")
-
-            if datetime.datetime.now() >= expiry_time:
-                get_accesstoken()
-        else:
-            get_accesstoken()
-            
+        if not _token_is_valid(TOKEN_INFO):
+            ok = get_accesstoken()
+            if not ok:
+                return (
+                    "KIS API 토큰을 발급받을 수 없습니다. "
+                    "잠시 후 다시 시도하거나 KIS 개발자센터에서 일일 발급 한도를 확인하세요.",
+                    503,
+                )
         return f(*args, **kwargs)
     return decorated_function
 
+
 def get_accesstoken():
-    res = requests.post(f"{API_BASE_URL}/oauth2/tokenP", headers={
-        "Content-Type": "application/json",
-        "Accept": "text/plain",
-        "charset": "UTF-8"
-    }, data=json.dumps({
-        "grant_type": "client_credentials",
-        "appkey": API_KEY,
-        "appsecret": API_KEY_SEC
-    }))
-    
-    if res.status_code == 200:
-        token_data = res.json()
-        if "access_token_token_expired" in token_data:
-            for key, value in token_data.items():
-                TOKEN_INFO[key] = value
-        
-    return TOKEN_INFO
+    """토큰 발급. 성공이면 TOKEN_INFO 갱신 + 디스크 캐시 저장 후 True 반환.
+    실패면 False 반환 (TOKEN_INFO는 그대로 유지)."""
+    with _token_lock:
+        # 다른 스레드가 이미 갱신했을 수 있음 — 락 안에서 한 번 더 확인
+        if _token_is_valid(TOKEN_INFO):
+            return True
+
+        try:
+            res = requests.post(
+                f"{API_BASE_URL}/oauth2/tokenP",
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "text/plain",
+                    "charset": "UTF-8",
+                },
+                data=json.dumps({
+                    "grant_type": "client_credentials",
+                    "appkey": API_KEY,
+                    "appsecret": API_KEY_SEC,
+                }),
+                timeout=10,
+            )
+        except Exception as e:
+            app.logger.error(f"토큰 발급 요청 실패: {e}")
+            return False
+
+        if res.status_code != 200:
+            app.logger.error(
+                f"토큰 발급 거부: HTTP {res.status_code} body={res.text[:300]}"
+            )
+            return False
+
+        try:
+            data = res.json()
+        except Exception as e:
+            app.logger.error(f"토큰 응답 파싱 실패: {e}, body={res.text[:300]}")
+            return False
+
+        if "access_token" not in data or "access_token_token_expired" not in data:
+            app.logger.error(f"토큰 응답 형식 이상: {data}")
+            return False
+
+        TOKEN_INFO.update(data)
+        save_token_cache()
+        app.logger.info(
+            f"새 토큰 발급 성공 (만료: {data['access_token_token_expired']})"
+        )
+        return True
+
+
+load_cached_token()
 
 
 def get_account_info():
