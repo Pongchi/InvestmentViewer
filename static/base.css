@@ -1,3 +1,12 @@
+/* ── Fonts ── */
+@font-face {
+  font-family: 'DOSMyungjo';
+  src: url('fonts/DOSMyungjo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -49,7 +58,7 @@
 
 html { transition: background 0.2s; }
 body {
-  font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif;
+  font-family: 'DOSMyungjo', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -67,7 +76,7 @@ body {
   transition: background 0.2s, border-color 0.2s;
 }
 .nav-brand {
-  font-family: 'Syne', 'Noto Sans KR', sans-serif;
+  font-family: 'DOSMyungjo', sans-serif;
   font-size: 1rem; font-weight: 800;
   color: var(--text);
   letter-spacing: -0.02em;
@@ -94,12 +103,12 @@ body {
 .back-btn:hover { background: var(--row-hov); }
 .nav-stock { display: flex; align-items: baseline; gap: 0.5rem; flex: 1; min-width: 0; }
 .nav-name {
-  font-family: 'Syne', 'Noto Sans KR', sans-serif; font-size: 1rem; font-weight: 800;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 1rem; font-weight: 800;
   color: var(--text); letter-spacing: -0.02em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .nav-ticker {
-  font-family: 'Space Mono', 'Noto Sans KR', monospace; font-size: 0.75rem; color: var(--muted); flex-shrink: 0;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 0.75rem; color: var(--muted); flex-shrink: 0;
 }
 .logout-btn {
   text-decoration: none; font-size: 0.8rem; font-weight: 600;
@@ -123,7 +132,7 @@ body {
   text-decoration: none; color: var(--muted);
   font-size: 0.7rem; font-weight: 600;
   transition: color 0.12s;
-  cursor: pointer; border: none; background: none; font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif;
+  cursor: pointer; border: none; background: none; font-family: 'DOSMyungjo', sans-serif;
 }
 .tab-item svg { display: block; }
 .tab-item.active { color: var(--accent); }
@@ -158,7 +167,7 @@ body {
 /* ── ROI badge ── */
 .roi-badge {
   display: inline-block;
-  font-family: 'Space Mono', 'Noto Sans KR', monospace; font-size: 0.72rem; font-weight: 700;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 0.72rem; font-weight: 700;
   padding: 0.18rem 0.45rem; border-radius: 5px;
 }
 .roi-badge.gain { background: var(--gain-bg); color: var(--gain); }
@@ -181,7 +190,7 @@ body {
 .seg-btn {
   position: relative; z-index: 1;
   padding: 0.38rem 1rem;
-  font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif; font-size: 0.82rem; font-weight: 600;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 0.82rem; font-weight: 600;
   color: var(--muted); border: none; background: transparent;
   border-radius: 7px; cursor: pointer; white-space: nowrap;
   transition: color 0.15s;
@@ -193,21 +202,21 @@ body {
 table { width: 100%; border-collapse: collapse; }
 thead th {
   padding: 0.65rem 1rem;
-  font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif; font-size: 0.7rem; font-weight: 600;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 0.7rem; font-weight: 600;
   color: var(--muted); text-align: right;
   border-bottom: 1px solid var(--border); white-space: nowrap;
 }
 thead th:first-child { text-align: left; }
 tbody td {
   padding: 0 1rem; height: 54px; vertical-align: middle;
-  font-family: 'Space Mono', 'Noto Sans KR', monospace; font-size: 0.8rem;
+  font-family: 'DOSMyungjo', sans-serif; font-size: 0.8rem;
   color: var(--text); text-align: right;
   border-bottom: 1px solid var(--border); white-space: nowrap;
   transition: background 0.12s;
 }
 tbody tr:last-child td { border-bottom: none; }
 tbody td:first-child {
-  font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif; text-align: left;
+  font-family: 'DOSMyungjo', sans-serif; text-align: left;
 }
 .clickable-row { cursor: pointer; }
 .clickable-row:hover td { background: var(--row-hov); }
@@ -215,7 +224,7 @@ tbody td:first-child {
 .stock-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
 .empty-cell {
   text-align: center !important; padding: 2.5rem 1rem !important;
-  color: var(--muted); font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif !important;
+  color: var(--muted); font-family: 'DOSMyungjo', sans-serif !important;
   font-size: 0.875rem; height: auto !important;
 }
 
@@ -246,7 +255,7 @@ tbody td:first-child {
   tbody td:first-child { padding: 0.75rem 1rem 0.3rem; }
   tbody td::before {
     content: attr(data-label);
-    font-family: 'IBM Plex Sans', 'Noto Sans KR', sans-serif; font-size: 0.72rem;
+    font-family: 'DOSMyungjo', sans-serif; font-size: 0.72rem;
     color: var(--muted); font-weight: 500; flex-shrink: 0; margin-right: 0.5rem;
   }
   tbody td:first-child::before { display: none; }

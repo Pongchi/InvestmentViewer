@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>내 계정 — InvestmentViewer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
   <style>
     .account-header {
@@ -22,11 +20,11 @@
     }
     .account-meta { flex: 1; min-width: 0; }
     .account-cano {
-      font-family: 'Space Mono', monospace;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.95rem; font-weight: 700; color: var(--text);
     }
     .account-type {
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.75rem; color: var(--muted); margin-top: 3px;
     }
 
@@ -39,19 +37,19 @@
       border-radius: 14px; padding: 1rem 1.1rem;
     }
     .stat-label {
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.72rem; font-weight: 600; color: var(--muted);
       letter-spacing: 0.03em; margin-bottom: 0.4rem;
     }
     .stat-value {
-      font-family: 'Space Mono', monospace;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 1rem; font-weight: 700; color: var(--text);
       letter-spacing: -0.02em;
     }
     .stat-value.gain { color: var(--gain); }
     .stat-value.loss { color: var(--loss); }
     .stat-sub {
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.72rem; color: var(--muted); margin-top: 3px;
     }
 
@@ -66,11 +64,11 @@
     }
     .info-row:last-child { border-bottom: none; }
     .info-key {
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.82rem; font-weight: 500; color: var(--muted);
     }
     .info-val {
-      font-family: 'Space Mono', monospace;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.82rem; font-weight: 700; color: var(--text);
     }
     .info-val.accent { color: var(--accent); }
@@ -82,7 +80,7 @@
       padding: 0.85rem 1rem;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; cursor: pointer;
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.875rem; font-weight: 600; color: var(--muted);
       text-decoration: none;
       transition: background 0.12s, color 0.12s;
@@ -102,6 +100,7 @@
       .stat-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
+<script>!function(){var t=localStorage.getItem('iv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}();</script>
 </head>
 <body>
   <!-- Navbar -->
@@ -171,7 +170,7 @@
     <div class="card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center;">
       <div>
         <div class="section-label" style="margin-bottom:0.3rem;">총평가손익</div>
-        <div style="font-family:'Space Mono',monospace; font-size:1.4rem; font-weight:700; letter-spacing:-0.03em;" class="{{ 'gain' if pfls_amt >= 0 else 'loss' }}">
+        <div style="font-family:'DOSMyungjo',sans-serif; font-size:1.4rem; font-weight:700; letter-spacing:-0.03em;" class="{{ 'gain' if pfls_amt >= 0 else 'loss' }}">
           {{ '+' if pfls_amt >= 0 else '' }}{{ '{:,.0f}'.format(pfls_amt) }}원
         </div>
       </div>
@@ -251,17 +250,17 @@
     const moon = btn.querySelector('.moon-icon');
 
     function applyTheme(dark) {
-      root.setAttribute('data-theme', dark ? 'dark' : '');
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
       sun.style.display  = dark ? 'none'  : 'block';
       moon.style.display = dark ? 'block' : 'none';
     }
 
-    let dark = localStorage.getItem('theme') === 'dark';
+    let dark = localStorage.getItem('iv-theme') === 'dark';
     applyTheme(dark);
 
     btn.addEventListener('click', () => {
       dark = !dark;
-      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      localStorage.setItem('iv-theme', dark ? 'dark' : 'light');
       applyTheme(dark);
     });
 

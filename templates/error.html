@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>오류 — InvestmentViewer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
   <style>
     .error-page {
@@ -20,12 +18,12 @@
       margin-bottom: 1.25rem;
     }
     .error-title {
-      font-family: 'Syne', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 1.25rem; font-weight: 800; color: var(--text);
       letter-spacing: -0.02em; margin-bottom: 0.5rem;
     }
     .error-message {
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.875rem; color: var(--muted);
       max-width: 320px; line-height: 1.6; margin-bottom: 2rem;
     }
@@ -35,7 +33,7 @@
       padding: 0.65rem 1.25rem;
       background: var(--accent); color: #fff; border: none;
       border-radius: 10px; cursor: pointer; text-decoration: none;
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.875rem; font-weight: 600;
       transition: background 0.12s;
     }
@@ -45,20 +43,21 @@
       padding: 0.65rem 1.25rem;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 10px; cursor: pointer; text-decoration: none;
-      font-family: 'IBM Plex Sans', sans-serif;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.875rem; font-weight: 600; color: var(--muted);
       transition: background 0.12s, color 0.12s;
     }
     .btn-ghost:hover { background: var(--row-hov); color: var(--text); }
 
     .code-block {
-      font-family: 'Space Mono', monospace;
+      font-family: 'DOSMyungjo', sans-serif;
       font-size: 0.75rem; color: var(--muted);
       background: var(--chip-bg); border-radius: 8px;
       padding: 0.6rem 1rem; margin-top: 2rem;
       max-width: 360px; word-break: break-all;
     }
   </style>
+<script>!function(){var t=localStorage.getItem('iv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}();</script>
 </head>
 <body>
   <!-- Navbar -->
@@ -136,17 +135,17 @@
     const moon = btn.querySelector('.moon-icon');
 
     function applyTheme(dark) {
-      root.setAttribute('data-theme', dark ? 'dark' : '');
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
       sun.style.display  = dark ? 'none'  : 'block';
       moon.style.display = dark ? 'block' : 'none';
     }
 
-    let dark = localStorage.getItem('theme') === 'dark';
+    let dark = localStorage.getItem('iv-theme') === 'dark';
     applyTheme(dark);
 
     btn.addEventListener('click', () => {
       dark = !dark;
-      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      localStorage.setItem('iv-theme', dark ? 'dark' : 'light');
       applyTheme(dark);
     });
   </script>

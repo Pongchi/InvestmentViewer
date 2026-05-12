@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ item_info.ovrs_item_name|default('차트') }} — InvestmentViewer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@^3"></script>
@@ -15,7 +12,7 @@
         .price-card { padding: 1.25rem 1.5rem; animation: fadeUp 0.3s ease both; }
         .price-row  { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
         .current-price {
-            font-family: 'Space Mono', monospace;
+            font-family: 'DOSMyungjo', sans-serif;
             font-size: 2rem; font-weight: 700; color: var(--text);
             letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.35rem;
         }
@@ -30,29 +27,29 @@
         .info-cell { padding: 0.75rem 0; text-align: center; border-right: 1px solid var(--border); }
         .info-cell:last-child { border-right: none; }
         .info-cell-label { font-size: 0.68rem; color: var(--muted); font-weight: 500; margin-bottom: 0.25rem; }
-        .info-cell-val { font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--text); }
+        .info-cell-val { font-family: 'DOSMyungjo', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text); }
 
         .holding-card { padding: 1.25rem 1.5rem; animation: fadeUp 0.3s ease 0.06s both; }
         .holding-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
         .chip-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
         .chip { background: var(--chip-bg); border-radius: 8px; padding: 0.3rem 0.65rem; font-size: 0.78rem; color: var(--muted); }
-        .chip strong { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); font-size: 0.8rem; }
-        .pl-big { font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700; }
+        .chip strong { font-family: 'DOSMyungjo', sans-serif; font-weight: 700; color: var(--text); font-size: 0.8rem; }
+        .pl-big { font-family: 'DOSMyungjo', sans-serif; font-size: 1.2rem; font-weight: 700; }
         .invest-row {
             display: flex; align-items: center; justify-content: space-between;
             margin-top: 0.875rem; padding-top: 0.875rem;
             border-top: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem;
         }
         .invest-info { font-size: 0.8rem; color: var(--muted); }
-        .invest-info strong { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); margin-left: 0.3rem; }
-        .roi-pill { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.75rem; border-radius: 999px; }
+        .invest-info strong { font-family: 'DOSMyungjo', sans-serif; font-weight: 700; color: var(--text); margin-left: 0.3rem; }
+        .roi-pill { font-family: 'DOSMyungjo', sans-serif; font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.75rem; border-radius: 999px; }
         .roi-pill.gain { background: var(--gain-bg); color: var(--gain); }
         .roi-pill.loss { background: var(--loss-bg); color: var(--loss); }
 
         .period-tabs { display: flex; gap: 0.375rem; margin-bottom: 0.875rem; }
         .period-btn {
             padding: 0.3rem 0.7rem; border-radius: 7px;
-            font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700;
+            font-family: 'DOSMyungjo', sans-serif; font-size: 0.75rem; font-weight: 700;
             color: var(--muted); border: 1px solid var(--border); background: transparent; cursor: pointer;
             transition: background 0.12s, color 0.12s, border-color 0.12s;
         }
