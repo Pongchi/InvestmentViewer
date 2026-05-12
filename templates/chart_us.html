@@ -1,181 +1,330 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item_info.ovrs_item_name|default('시세 차트') }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <title>{{ item_info.ovrs_item_name|default('차트') }} — InvestmentViewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@^3"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #F5F5F7;
+            --card: #FFFFFF;
+            --border: #E8E8EE;
+            --text: #111111;
+            --muted: #8A8A9A;
+            --accent: #5B4CF5;
+            --accent-bg: #EBE8FE;
+            --gain: #EF4444;
+            --gain-bg: #FFF2F2;
+            --loss: #3B82F6;
+            --loss-bg: #EFF6FF;
+            --row-hover: #F8F8FA;
+            --chart-grid: rgba(0,0,0,0.05);
+            --chart-tick: #8A8A9A;
+            --tooltip-bg: #FFFFFF;
+            --tooltip-border: #E8E8EE;
+            --chip-bg: #F2F2F6;
+        }
+        [data-theme="dark"] {
+            --bg: #0D0D14;
+            --card: #16161F;
+            --border: #1E1E2E;
+            --text: #F0F0F5;
+            --muted: #5A5A7A;
+            --accent-bg: #1E1B3A;
+            --gain-bg: #2A1010;
+            --loss-bg: #0F1A2A;
+            --row-hover: #1C1C28;
+            --chart-grid: rgba(255,255,255,0.05);
+            --chart-tick: #5A5A7A;
+            --tooltip-bg: #1E1E2E;
+            --tooltip-border: #2A2A3A;
+            --chip-bg: #1C1C28;
+        }
+
+        html { transition: background 0.2s; }
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #F2F4F6;
-            color: #191F28;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
         }
 
-        .topbar {
-            background: #fff;
-            border-bottom: 1px solid #E5E8EB;
-            padding: 0 1.25rem;
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
             height: 56px;
             display: flex;
             align-items: center;
+            padding: 0 1.25rem;
             gap: 0.75rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            transition: background 0.2s, border-color 0.2s;
         }
         .back-btn {
-            text-decoration: none;
-            color: #191F28;
             display: flex;
             align-items: center;
             justify-content: center;
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            transition: background 0.12s;
+            text-decoration: none;
+            color: var(--text);
             flex-shrink: 0;
+            transition: background 0.12s;
         }
-        .back-btn:hover { background: #F2F4F6; }
-        .back-btn svg { display: block; }
-        .topbar-name {
+        .back-btn:hover { background: var(--row-hover); }
+
+        .nav-stock {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .nav-name {
+            font-family: 'Syne', sans-serif;
             font-size: 1rem;
-            font-weight: 700;
-            color: #191F28;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.02em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .topbar-code {
-            font-size: 0.8rem;
-            color: #B0B8C1;
-            font-weight: 500;
+        .nav-ticker {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
             flex-shrink: 0;
         }
 
-        .page-content {
-            max-width: 960px;
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s;
+        }
+        .icon-btn:hover { background: var(--row-hover); color: var(--text); }
+
+        .page {
+            max-width: 1024px;
             margin: 0 auto;
             padding: 1.5rem 1.25rem 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.875rem;
         }
 
-        .price-section {
-            background: #fff;
-            border-radius: 16px;
+        .price-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 1.5rem;
-            margin-bottom: 1rem;
+            animation: fadeUp 0.3s ease both;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .price-main-row {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            gap: 1rem;
+            align-items: flex-start;
+            gap: 1.5rem;
             flex-wrap: wrap;
         }
-        .price-left .current-price {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #191F28;
+        .current-price {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
             letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 0.4rem;
         }
-        .price-left .price-change {
-            font-size: 0.9rem;
-            color: #8B95A1;
-            margin-top: 0.3rem;
+        .price-change {
+            font-size: 0.875rem;
+            color: var(--muted);
         }
-        .price-left .price-change .profit { color: #F04452; font-weight: 600; }
-        .price-left .price-change .loss   { color: #3182F6; font-weight: 600; }
-        .price-left .price-change .even   { color: #8B95A1; }
+        .price-change .gain { color: var(--gain); font-weight: 600; }
+        .price-change .loss { color: var(--loss); font-weight: 600; }
 
-        .holding-chips {
+        .holding-right {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 0.4rem;
+            gap: 0.5rem;
         }
-        .chip-row { display: flex; gap: 0.5rem; }
+        .chip-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
         .chip {
-            background: #F2F4F6;
+            background: var(--chip-bg);
             border-radius: 8px;
-            padding: 0.35rem 0.7rem;
-            font-size: 0.8rem;
-            color: #4E5968;
+            padding: 0.3rem 0.65rem;
+            font-size: 0.78rem;
+            color: var(--muted);
         }
-        .chip span { font-weight: 700; color: #191F28; }
-        .pl-chip {
-            font-size: 0.95rem;
+        .chip strong {
+            font-family: 'Space Mono', monospace;
             font-weight: 700;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.8rem;
         }
-        .pl-chip.profit { background: #FFF2F2; color: #F04452; }
-        .pl-chip.loss   { background: #EBF2FF; color: #3182F6; }
+        .pl-large {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .pl-large.gain { color: var(--gain); }
+        .pl-large.loss { color: var(--loss); }
+
+        .invest-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .invest-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .invest-label strong {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--text);
+            margin-left: 0.35rem;
+        }
+        .roi-pill {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+        }
+        .roi-pill.gain { background: var(--gain-bg); color: var(--gain); }
+        .roi-pill.loss { background: var(--loss-bg); color: var(--loss); }
 
         .chart-card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 1.25rem 1.25rem 1rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            animation: fadeUp 0.3s ease 0.08s both;
+            transition: background 0.2s, border-color 0.2s;
         }
         .chart-wrap {
             position: relative;
             aspect-ratio: 16 / 9;
         }
-        @media (max-width: 640px) {
-            .chart-wrap { aspect-ratio: 4 / 3; }
-        }
 
-        .error-box {
-            background: #fff;
-            border-radius: 16px;
+        .error-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 3rem 1rem;
             text-align: center;
-            color: #B0B8C1;
-            font-size: 0.9rem;
+            color: var(--muted);
+            font-size: 0.875rem;
         }
 
         @media (max-width: 640px) {
-            .price-section { flex-direction: column; align-items: flex-start; }
-            .holding-chips { align-items: flex-start; }
-            .price-left .current-price { font-size: 1.7rem; }
+            .current-price { font-size: 1.7rem; }
+            .price-main-row { flex-direction: column; }
+            .holding-right { align-items: flex-start; }
+            .chip-row { justify-content: flex-start; }
+            .chart-wrap { aspect-ratio: 4 / 3; }
         }
     </style>
 </head>
 <body>
-    <nav class="topbar">
+    <nav class="navbar">
         <a href="{{ url_for('home') }}" class="back-btn" aria-label="돌아가기">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#191F28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"/>
             </svg>
         </a>
-        <span class="topbar-name">{{ item_info.ovrs_item_name|default('종목 정보 없음') }}</span>
-        <span class="topbar-code">{{ item_info.ovrs_pdno|default('') }}</span>
+        <div class="nav-stock">
+            <span class="nav-name">{{ item_info.ovrs_item_name|default('종목') }}</span>
+            <span class="nav-ticker">{{ item_info.ovrs_pdno|default('') }}</span>
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="테마 전환">
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </button>
     </nav>
 
-    <div class="page-content">
+    <div class="page">
         {% if item_info and item_info.rt_cd != '1' %}
-        <div class="price-section">
-            <div class="price-left">
-                <div class="current-price">${{ "{:,.2f}".format(item_info.clos|default(0)|float) }}</div>
-                <div class="price-change">
-                    전일 대비
-                    <span class="{% if item_info.sign|default('') == '2' %}profit{% elif item_info.sign|default('') == '5' %}loss{% else %}even{% endif %}">
-                        {% if item_info.sign|default('') == '2' %}+{% elif item_info.sign|default('') == '5' %}-{% endif %}${{ "{:,.2f}".format(item_info.diff|default(0)|float) }}
-                        ({% if item_info.sign|default('') == '2' %}+{% endif %}{{ "%.2f"|format(item_info.rate|default(0)|float) }}%)
-                    </span>
+
+        {% set is_gain = item_info.sign|default('') == '2' %}
+        {% set is_loss = item_info.sign|default('') == '5' %}
+
+        <div class="price-card">
+            <div class="price-main-row">
+                <div>
+                    <div class="current-price">${{ "{:,.2f}".format(item_info.clos|default(0)|float) }}</div>
+                    <div class="price-change">
+                        전일 대비
+                        <span class="{% if is_gain %}gain{% elif is_loss %}loss{% endif %}">
+                            {% if is_gain %}▲{% elif is_loss %}▼{% endif %}
+                            ${{ "{:,.2f}".format(item_info.diff|default(0)|float) }}
+                            ({% if is_gain %}+{% endif %}{{ "%.2f"|format(item_info.rate|default(0)|float) }}%)
+                        </span>
+                    </div>
                 </div>
+
+                {% if holding_info %}
+                {% set h_roi = holding_info.evlu_pfls_rt|default(0)|float %}
+                {% set h_invested = (holding_info.pchs_avg_pric|default(0)|float) * (holding_info.ovrs_cblc_qty|default(0)|float) %}
+                <div class="holding-right">
+                    <div class="chip-row">
+                        <div class="chip">평단가 <strong>${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</strong></div>
+                        <div class="chip">보유수량 <strong>{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</strong></div>
+                    </div>
+                    <div class="pl-large {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}gain{% else %}loss{% endif %}">
+                        {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}+{% endif %}${{ "{:,.2f}".format(holding_info.frcr_evlu_pfls_amt|default(0)|float) }}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             {% if holding_info %}
-            <div class="holding-chips">
-                <div class="chip-row">
-                    <div class="chip">평단가 <span>${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</span></div>
-                    <div class="chip">보유수량 <span>{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</span></div>
+            <div class="invest-row">
+                <div class="invest-label">
+                    투자금액
+                    <strong>${{ "{:,.2f}".format(h_invested) }}</strong>
                 </div>
-                <div class="pl-chip {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                    ${{ "{:,.2f}".format(holding_info.frcr_evlu_pfls_amt|default(0)|float) }}
-                    ({{ "%.2f"|format(holding_info.evlu_pfls_rt|default(0)|float) }}%)
+                <div class="roi-pill {% if h_roi >= 0 %}gain{% else %}loss{% endif %}">
+                    투자대비 {% if h_roi >= 0 %}+{% endif %}{{ "%.2f"|format(h_roi) }}%
                 </div>
             </div>
             {% endif %}
@@ -188,100 +337,130 @@
         </div>
 
         {% else %}
-        <div class="error-box">종목 정보를 불러올 수 없습니다.</div>
+        <div class="error-card">종목 정보를 불러올 수 없습니다.</div>
         {% endif %}
     </div>
 
     <script>
-    {% if item_info and item_info.rt_cd != '1' %}
-    const chartData = JSON.parse('{{ chart_data|safe }}');
-    const dailyPrices = chartData.output2 || [];
-    Chart.defaults.locale = 'ko';
+        (function() {
+            const saved = localStorage.getItem('iv-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateIcons(saved);
+        })();
+        function toggleTheme() {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('iv-theme', next);
+            updateIcons(next);
+            if (window._chart) { applyChartTheme(window._chart, next); window._chart.update(); }
+        }
+        function updateIcons(t) {
+            document.getElementById('icon-sun').style.display  = t === 'dark'  ? 'block' : 'none';
+            document.getElementById('icon-moon').style.display = t === 'light' ? 'block' : 'none';
+        }
+        function getThemeColors(t) {
+            return {
+                grid:    t === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                tick:    t === 'dark' ? '#5A5A7A' : '#8A8A9A',
+                tooltip: { bg: t === 'dark' ? '#1E1E2E' : '#fff', border: t === 'dark' ? '#2A2A3A' : '#E8E8EE' }
+            };
+        }
+        function applyChartTheme(chart, t) {
+            const c = getThemeColors(t);
+            chart.options.scales.x.grid.color = c.grid;
+            chart.options.scales.x.ticks.color = c.tick;
+            chart.options.scales.yPrice.grid.color = c.grid;
+            chart.options.scales.yPrice.ticks.color = c.tick;
+            chart.options.scales.yVolume.ticks.color = c.tick;
+            chart.options.plugins.tooltip.backgroundColor = c.tooltip.bg;
+            chart.options.plugins.tooltip.borderColor = c.tooltip.border;
+        }
 
-    const lineData = dailyPrices.map(item => ({
-        x: new Date(item.xymd.slice(0,4) + '-' + item.xymd.slice(4,6) + '-' + item.xymd.slice(6,8)).getTime(),
-        y: parseFloat(item.clos)
-    }));
-    const volumeData = dailyPrices.map(item => ({
-        x: new Date(item.xymd.slice(0,4) + '-' + item.xymd.slice(4,6) + '-' + item.xymd.slice(6,8)).getTime(),
-        y: parseFloat(item.tvol)
-    }));
+        {% if item_info and item_info.rt_cd != '1' %}
+        const rawData = JSON.parse('{{ chart_data|safe }}');
+        const daily = rawData.output2 || [];
 
-    const startPrice = lineData.length > 0 ? lineData[0].y : 0;
-    const endPrice   = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
-    const isUp = endPrice >= startPrice;
-    const trendColor = isUp ? '#F04452' : '#3182F6';
-    const trendRgb   = isUp ? '240,68,82' : '49,130,246';
+        const lineData = daily.map(d => ({
+            x: new Date(d.xymd.slice(0,4)+'-'+d.xymd.slice(4,6)+'-'+d.xymd.slice(6,8)).getTime(),
+            y: parseFloat(d.clos)
+        }));
+        const volData = daily.map(d => ({
+            x: new Date(d.xymd.slice(0,4)+'-'+d.xymd.slice(4,6)+'-'+d.xymd.slice(6,8)).getTime(),
+            y: parseFloat(d.tvol)
+        }));
 
-    new Chart(document.getElementById('stockChart').getContext('2d'), {
-        data: {
-            datasets: [{
-                type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
-                borderColor: trendColor, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
-                backgroundColor: (ctx) => {
-                    const { chartArea } = ctx.chart;
-                    if (!chartArea) return null;
-                    const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                    g.addColorStop(0, `rgba(${trendRgb},0.15)`);
-                    g.addColorStop(1, `rgba(${trendRgb},0)`);
-                    return g;
-                }
-            }, {
-                type: 'bar', label: '거래량', data: volumeData, yAxisID: 'yVolume',
-                backgroundColor: 'rgba(176,184,193,0.4)'
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: { unit: 'day', displayFormats: { day: 'M/d' } },
-                    grid: { color: 'rgba(0,0,0,0.04)' },
-                    ticks: { color: '#B0B8C1', font: { family: 'Pretendard', size: 11 } }
-                },
-                yPrice: {
-                    position: 'left',
-                    grid: { color: 'rgba(0,0,0,0.04)' },
-                    ticks: {
-                        color: '#B0B8C1',
-                        font: { family: 'Pretendard', size: 11 },
-                        callback: v => '$' + v.toLocaleString()
+        const startP = lineData.length ? lineData[0].y : 0;
+        const endP   = lineData.length ? lineData[lineData.length-1].y : 0;
+        const isUp   = endP >= startP;
+        const trendC = isUp ? '#EF4444' : '#3B82F6';
+        const trendR = isUp ? '239,68,68' : '59,130,246';
+
+        const theme0 = document.documentElement.getAttribute('data-theme') || 'light';
+        const tc0 = getThemeColors(theme0);
+
+        const chart = new Chart(document.getElementById('stockChart').getContext('2d'), {
+            data: {
+                datasets: [{
+                    type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
+                    borderColor: trendC, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
+                    backgroundColor: ctx => {
+                        const {chartArea} = ctx.chart;
+                        if (!chartArea) return null;
+                        const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, `rgba(${trendR},0.18)`);
+                        g.addColorStop(1, `rgba(${trendR},0)`);
+                        return g;
                     }
-                },
-                yVolume: {
-                    position: 'right', min: 0,
-                    grid: { drawOnChartArea: false },
-                    ticks: {
-                        color: '#B0B8C1',
-                        font: { family: 'Pretendard', size: 11 },
-                        callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v
-                    }
-                }
+                },{
+                    type: 'bar', label: '거래량', data: volData, yAxisID: 'yVolume',
+                    backgroundColor: 'rgba(138,138,154,0.3)'
+                }]
             },
-            plugins: {
-                legend: { labels: { color: '#8B95A1', font: { family: 'Pretendard', size: 12 } } },
-                tooltip: {
-                    backgroundColor: '#fff',
-                    titleColor: '#191F28',
-                    bodyColor: '#4E5968',
-                    borderColor: '#E5E8EB',
-                    borderWidth: 1,
-                    callbacks: {
-                        label: ctx => {
-                            const label = (ctx.dataset.label || '') + ': ';
-                            if (ctx.parsed.y == null) return label;
-                            return ctx.dataset.type === 'line'
-                                ? label + '$' + ctx.parsed.y.toLocaleString()
-                                : label + ctx.parsed.y.toLocaleString();
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { unit: 'day', displayFormats: { day: 'M/d' } },
+                        grid: { color: tc0.grid },
+                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 } }
+                    },
+                    yPrice: {
+                        position: 'left',
+                        grid: { color: tc0.grid },
+                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 }, callback: v => '$'+v.toLocaleString() }
+                    },
+                    yVolume: {
+                        position: 'right', min: 0,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 }, callback: v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: tc0.tick, font: { family: 'IBM Plex Sans', size: 12 } } },
+                    tooltip: {
+                        backgroundColor: tc0.tooltip.bg,
+                        titleColor: theme0 === 'dark' ? '#F0F0F5' : '#111111',
+                        bodyColor:  theme0 === 'dark' ? '#C0C0D0' : '#3A3A4A',
+                        borderColor: tc0.tooltip.border,
+                        borderWidth: 1,
+                        callbacks: {
+                            label: ctx => {
+                                const label = (ctx.dataset.label||'')+': ';
+                                if (ctx.parsed.y == null) return label;
+                                return ctx.dataset.type === 'line'
+                                    ? label + '$' + ctx.parsed.y.toLocaleString()
+                                    : label + ctx.parsed.y.toLocaleString();
+                            }
                         }
                     }
                 }
             }
-        }
-    });
-    {% endif %}
+        });
+        window._chart = chart;
+        {% endif %}
     </script>
 </body>
 </html>
