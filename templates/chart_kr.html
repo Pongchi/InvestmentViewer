@@ -14,7 +14,7 @@
         .price-card { padding: 1.25rem 1.5rem; animation: fadeUp 0.3s ease both; }
         .price-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
         .current-price {
-            font-family: 'DOSMyungjo', sans-serif;
+            font-family: 'MaruMinya', sans-serif;
             font-size: 2rem; font-weight: 700; color: var(--text);
             letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.35rem;
         }
@@ -36,7 +36,7 @@
         .info-cell:last-child { border-right: none; }
         .info-cell-label { font-size: 0.68rem; color: var(--muted); font-weight: 500; margin-bottom: 0.25rem; }
         .info-cell-val {
-            font-family: 'DOSMyungjo', sans-serif;
+            font-family: 'MaruMinya', sans-serif;
             font-size: 0.85rem; font-weight: 700; color: var(--text);
         }
 
@@ -46,7 +46,7 @@
             display: flex; justify-content: space-between; margin-bottom: 0.4rem;
         }
         .w52-label { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
-        .w52-val { font-family: 'DOSMyungjo', sans-serif; font-size: 0.75rem; font-weight: 700; }
+        .w52-val { font-family: 'MaruMinya', sans-serif; font-size: 0.75rem; font-weight: 700; }
         .w52-track {
             background: var(--border); border-radius: 99px; height: 5px;
             position: relative; margin-bottom: 0.25rem;
@@ -76,18 +76,18 @@
             padding: 0.3rem 0.65rem; font-size: 0.78rem; color: var(--muted);
         }
         .chip strong {
-            font-family: 'DOSMyungjo', sans-serif; font-weight: 700; color: var(--text); font-size: 0.8rem;
+            font-family: 'MaruMinya', sans-serif; font-weight: 700; color: var(--text); font-size: 0.8rem;
         }
-        .pl-big { font-family: 'DOSMyungjo', sans-serif; font-size: 1.2rem; font-weight: 700; }
+        .pl-big { font-family: 'MaruMinya', sans-serif; font-size: 1.2rem; font-weight: 700; }
         .invest-row {
             display: flex; align-items: center; justify-content: space-between;
             margin-top: 0.875rem; padding-top: 0.875rem;
             border-top: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem;
         }
         .invest-info { font-size: 0.8rem; color: var(--muted); }
-        .invest-info strong { font-family: 'DOSMyungjo', sans-serif; font-weight: 700; color: var(--text); margin-left: 0.3rem; }
+        .invest-info strong { font-family: 'MaruMinya', sans-serif; font-weight: 700; color: var(--text); margin-left: 0.3rem; }
         .roi-pill {
-            font-family: 'DOSMyungjo', sans-serif; font-size: 0.8rem; font-weight: 700;
+            font-family: 'MaruMinya', sans-serif; font-size: 0.8rem; font-weight: 700;
             padding: 0.3rem 0.75rem; border-radius: 999px;
         }
         .roi-pill.gain { background: var(--gain-bg); color: var(--gain); }
@@ -97,7 +97,7 @@
         .period-tabs { display: flex; gap: 0.375rem; margin-bottom: 0.875rem; }
         .period-btn {
             padding: 0.3rem 0.7rem; border-radius: 7px;
-            font-family: 'DOSMyungjo', sans-serif; font-size: 0.75rem; font-weight: 700;
+            font-family: 'MaruMinya', sans-serif; font-size: 0.75rem; font-weight: 700;
             color: var(--muted); border: 1px solid var(--border);
             background: transparent; cursor: pointer;
             transition: background 0.12s, color 0.12s, border-color 0.12s;
@@ -171,19 +171,19 @@
                     {% if stock_info.per and stock_info.per != '0.00' %}
                     <div style="text-align:center;">
                         <div style="font-size:0.68rem;color:var(--muted);font-weight:500;">PER</div>
-                        <div style="font-family:'DOSMyungjo',sans-serif;font-size:0.85rem;font-weight:700;">{{ stock_info.per }}</div>
+                        <div style="font-family:'MaruMinya',sans-serif;font-size:0.85rem;font-weight:700;">{{ stock_info.per }}</div>
                     </div>
                     {% endif %}
                     {% if stock_info.pbr and stock_info.pbr != '0.00' %}
                     <div style="text-align:center;">
                         <div style="font-size:0.68rem;color:var(--muted);font-weight:500;">PBR</div>
-                        <div style="font-family:'DOSMyungjo',sans-serif;font-size:0.85rem;font-weight:700;">{{ stock_info.pbr }}</div>
+                        <div style="font-family:'MaruMinya',sans-serif;font-size:0.85rem;font-weight:700;">{{ stock_info.pbr }}</div>
                     </div>
                     {% endif %}
                     {% if stock_info.hts_avls %}
                     <div style="text-align:center;">
                         <div style="font-size:0.68rem;color:var(--muted);font-weight:500;">시가총액</div>
-                        <div style="font-family:'DOSMyungjo',sans-serif;font-size:0.85rem;font-weight:700;">{{ "{:,.0f}".format(stock_info.hts_avls|default(0)|int) }}억</div>
+                        <div style="font-family:'MaruMinya',sans-serif;font-size:0.85rem;font-weight:700;">{{ "{:,.0f}".format(stock_info.hts_avls|default(0)|int) }}억</div>
                     </div>
                     {% endif %}
                 </div>

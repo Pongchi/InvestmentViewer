@@ -20,11 +20,11 @@
     }
     .account-meta { flex: 1; min-width: 0; }
     .account-cano {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.95rem; font-weight: 700; color: var(--text);
     }
     .account-type {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.75rem; color: var(--muted); margin-top: 3px;
     }
 
@@ -37,19 +37,19 @@
       border-radius: 14px; padding: 1rem 1.1rem;
     }
     .stat-label {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.72rem; font-weight: 600; color: var(--muted);
       letter-spacing: 0.03em; margin-bottom: 0.4rem;
     }
     .stat-value {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 1rem; font-weight: 700; color: var(--text);
       letter-spacing: -0.02em;
     }
     .stat-value.gain { color: var(--gain); }
     .stat-value.loss { color: var(--loss); }
     .stat-sub {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.72rem; color: var(--muted); margin-top: 3px;
     }
 
@@ -64,11 +64,11 @@
     }
     .info-row:last-child { border-bottom: none; }
     .info-key {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.82rem; font-weight: 500; color: var(--muted);
     }
     .info-val {
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.82rem; font-weight: 700; color: var(--text);
     }
     .info-val.accent { color: var(--accent); }
@@ -80,7 +80,7 @@
       padding: 0.85rem 1rem;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; cursor: pointer;
-      font-family: 'DOSMyungjo', sans-serif;
+      font-family: 'MaruMinya', sans-serif;
       font-size: 0.875rem; font-weight: 600; color: var(--muted);
       text-decoration: none;
       transition: background 0.12s, color 0.12s;
@@ -170,7 +170,7 @@
     <div class="card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center;">
       <div>
         <div class="section-label" style="margin-bottom:0.3rem;">총평가손익</div>
-        <div style="font-family:'DOSMyungjo',sans-serif; font-size:1.4rem; font-weight:700; letter-spacing:-0.03em;" class="{{ 'gain' if pfls_amt >= 0 else 'loss' }}">
+        <div style="font-family:'MaruMinya',sans-serif; font-size:1.4rem; font-weight:700; letter-spacing:-0.03em;" class="{{ 'gain' if pfls_amt >= 0 else 'loss' }}">
           {{ '+' if pfls_amt >= 0 else '' }}{{ '{:,.0f}'.format(pfls_amt) }}원
         </div>
       </div>
