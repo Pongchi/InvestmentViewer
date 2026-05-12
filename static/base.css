@@ -56,7 +56,7 @@
   --tt-border: #2A2A3A;
 }
 
-html { transition: background 0.2s; }
+html { font-size: 18px; transition: background 0.2s; }
 body {
   font-family: 'DOSMyungjo', sans-serif;
   background: var(--bg);
