@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 계정 — InvestmentViewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+  <style>
+    .account-header {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.25rem 1.25rem 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .account-meta { flex: 1; min-width: 0; }
+    .account-cano {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.95rem; font-weight: 700; color: var(--text);
+    }
+    .account-type {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.75rem; color: var(--muted); margin-top: 3px;
+    }
+
+    .stat-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1rem 1.1rem;
+    }
+    .stat-label {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      letter-spacing: 0.03em; margin-bottom: 0.4rem;
+    }
+    .stat-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .stat-value.gain { color: var(--gain); }
+    .stat-value.loss { color: var(--loss); }
+    .stat-sub {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.72rem; color: var(--muted); margin-top: 3px;
+    }
+
+    .info-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 1.5rem;
+    }
+    .info-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.82rem; font-weight: 500; color: var(--muted);
+    }
+    .info-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.82rem; font-weight: 700; color: var(--text);
+    }
+    .info-val.accent { color: var(--accent); }
+
+    .danger-zone { margin-bottom: 1.5rem; }
+    .logout-full {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; cursor: pointer;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 600; color: var(--muted);
+      text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+    }
+    .logout-full:hover { background: var(--gain-bg); color: var(--gain); }
+
+    .token-status {
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot.green { background: #22c55e; }
+    .dot.red   { background: var(--gain); }
+
+    @media (max-width: 640px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a class="nav-brand" href="/">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+        <polyline points="16 7 22 7 22 13"></polyline>
+      </svg>
+      IV
+    </a>
+    <span class="nav-spacer"></span>
+    <button class="icon-btn" id="themeToggle" title="테마 전환" aria-label="테마 전환">
+      <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </nav>
+
+  <div class="page">
+
+    <!-- Account header -->
+    <div class="account-header">
+      <div class="avatar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div class="account-meta">
+        <div class="account-cano">{{ masked_cano }}</div>
+        <div class="account-type">종합위탁계좌 · {{ acnt_prdt_cd }}</div>
+      </div>
+    </div>
+
+    <!-- Summary stats -->
+    {% set net_asset   = summary.get('nass_amt', '0') | float %}
+    {% set deposit     = summary.get('dnca_tot_amt', '0') | float %}
+    {% set invested    = summary.get('pchs_amt_smtl_amt', '0') | float %}
+    {% set eval_amt    = summary.get('evlu_amt_smtl_amt', '0') | float %}
+    {% set pfls_amt    = summary.get('evlu_pfls_smtl_amt', '0') | float %}
+    {% set pfls_rt     = (pfls_amt / invested * 100) if invested else 0 %}
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">순자산</div>
+        <div class="stat-value">{{ '{:,.0f}'.format(net_asset) }}</div>
+        <div class="stat-sub">원</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">예수금</div>
+        <div class="stat-value">{{ '{:,.0f}'.format(deposit) }}</div>
+        <div class="stat-sub">원</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">총투자금액</div>
+        <div class="stat-value">{{ '{:,.0f}'.format(invested) }}</div>
+        <div class="stat-sub">원</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">총평가금액</div>
+        <div class="stat-value">{{ '{:,.0f}'.format(eval_amt) }}</div>
+        <div class="stat-sub">원</div>
+      </div>
+    </div>
+
+    <!-- P&L highlight -->
+    <div class="card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div class="section-label" style="margin-bottom:0.3rem;">총평가손익</div>
+        <div style="font-family:'Space Mono',monospace; font-size:1.4rem; font-weight:700; letter-spacing:-0.03em;" class="{{ 'gain' if pfls_amt >= 0 else 'loss' }}">
+          {{ '+' if pfls_amt >= 0 else '' }}{{ '{:,.0f}'.format(pfls_amt) }}원
+        </div>
+      </div>
+      <div>
+        <span class="roi-badge {{ 'gain' if pfls_rt >= 0 else 'loss' }}">
+          {{ '+' if pfls_rt >= 0 else '' }}{{ '%.2f'|format(pfls_rt) }}%
+        </span>
+      </div>
+    </div>
+
+    <!-- Token / Session info -->
+    <div class="section-label">세션 정보</div>
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-key">API 토큰 상태</span>
+        <span class="info-val accent">
+          <span class="token-status" id="tokenStatus">
+            <span class="dot green" id="tokenDot"></span>
+            <span id="tokenText">유효</span>
+          </span>
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">토큰 만료시각</span>
+        <span class="info-val">{{ token_exp }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">증권사</span>
+        <span class="info-val">한국투자증권 (KIS)</span>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="danger-zone">
+      <a href="/logout" class="logout-full">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        로그아웃
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="/" class="tab-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect>
+        <rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect>
+      </svg>
+      포트폴리오
+    </a>
+    <a href="/trades" class="tab-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"></polyline>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+      </svg>
+      체결내역
+    </a>
+    <button class="tab-item active" onclick="void(0)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      내 계정
+    </button>
+  </nav>
+
+  <script>
+    // Theme
+    const root = document.documentElement;
+    const btn  = document.getElementById('themeToggle');
+    const sun  = btn.querySelector('.sun-icon');
+    const moon = btn.querySelector('.moon-icon');
+
+    function applyTheme(dark) {
+      root.setAttribute('data-theme', dark ? 'dark' : '');
+      sun.style.display  = dark ? 'none'  : 'block';
+      moon.style.display = dark ? 'block' : 'none';
+    }
+
+    let dark = localStorage.getItem('theme') === 'dark';
+    applyTheme(dark);
+
+    btn.addEventListener('click', () => {
+      dark = !dark;
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyTheme(dark);
+    });
+
+    // Token expiry check
+    const tokenExp = "{{ token_exp }}";
+    if (tokenExp && tokenExp !== 'N/A') {
+      const expDate = new Date(tokenExp.replace(' ', 'T'));
+      const now = new Date();
+      const minsLeft = (expDate - now) / 60000;
+      if (minsLeft < 30) {
+        document.getElementById('tokenDot').className = 'dot red';
+        document.getElementById('tokenText').textContent = `만료 ${Math.max(0, Math.round(minsLeft))}분 전`;
+      } else {
+        document.getElementById('tokenText').textContent = `유효 (${Math.round(minsLeft / 60)}시간 남음)`;
+      }
+    }
+  </script>
+</body>
+</html>

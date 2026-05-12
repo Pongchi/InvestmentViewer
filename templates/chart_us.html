@@ -7,263 +7,76 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@^3"></script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg: #F5F5F7;
-            --card: #FFFFFF;
-            --border: #E8E8EE;
-            --text: #111111;
-            --muted: #8A8A9A;
-            --accent: #5B4CF5;
-            --accent-bg: #EBE8FE;
-            --gain: #EF4444;
-            --gain-bg: #FFF2F2;
-            --loss: #3B82F6;
-            --loss-bg: #EFF6FF;
-            --row-hover: #F8F8FA;
-            --chart-grid: rgba(0,0,0,0.05);
-            --chart-tick: #8A8A9A;
-            --tooltip-bg: #FFFFFF;
-            --tooltip-border: #E8E8EE;
-            --chip-bg: #F2F2F6;
-        }
-        [data-theme="dark"] {
-            --bg: #0D0D14;
-            --card: #16161F;
-            --border: #1E1E2E;
-            --text: #F0F0F5;
-            --muted: #5A5A7A;
-            --accent-bg: #1E1B3A;
-            --gain-bg: #2A1010;
-            --loss-bg: #0F1A2A;
-            --row-hover: #1C1C28;
-            --chart-grid: rgba(255,255,255,0.05);
-            --chart-tick: #5A5A7A;
-            --tooltip-bg: #1E1E2E;
-            --tooltip-border: #2A2A3A;
-            --chip-bg: #1C1C28;
-        }
-
-        html { transition: background 0.2s; }
-        body {
-            font-family: 'IBM Plex Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            height: 56px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.25rem;
-            gap: 0.75rem;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .back-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text);
-            flex-shrink: 0;
-            transition: background 0.12s;
-        }
-        .back-btn:hover { background: var(--row-hover); }
-
-        .nav-stock {
-            display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-            flex: 1;
-            min-width: 0;
-        }
-        .nav-name {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--text);
-            letter-spacing: -0.02em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .nav-ticker {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--muted);
-            flex-shrink: 0;
-        }
-
-        .icon-btn {
-            background: none;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--muted);
-            flex-shrink: 0;
-            transition: background 0.15s, color 0.15s;
-        }
-        .icon-btn:hover { background: var(--row-hover); color: var(--text); }
-
-        .page {
-            max-width: 1024px;
-            margin: 0 auto;
-            padding: 1.5rem 1.25rem 3rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.875rem;
-        }
-
-        .price-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
-            animation: fadeUp 0.3s ease both;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .price-main-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
+        body { padding-bottom: 0; }
+        .price-card { padding: 1.25rem 1.5rem; animation: fadeUp 0.3s ease both; }
+        .price-row  { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
         .current-price {
             font-family: 'Space Mono', monospace;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.04em;
-            line-height: 1;
-            margin-bottom: 0.4rem;
+            font-size: 2rem; font-weight: 700; color: var(--text);
+            letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.35rem;
         }
-        .price-change {
-            font-size: 0.875rem;
-            color: var(--muted);
-        }
+        .price-change { font-size: 0.875rem; color: var(--muted); }
         .price-change .gain { color: var(--gain); font-weight: 600; }
         .price-change .loss { color: var(--loss); font-weight: 600; }
 
-        .holding-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 0.5rem;
+        .info-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 0; margin-top: 1.25rem; border-top: 1px solid var(--border);
         }
-        .chip-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
-        .chip {
-            background: var(--chip-bg);
-            border-radius: 8px;
-            padding: 0.3rem 0.65rem;
-            font-size: 0.78rem;
-            color: var(--muted);
-        }
-        .chip strong {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            color: var(--text);
-            font-size: 0.8rem;
-        }
-        .pl-large {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-        .pl-large.gain { color: var(--gain); }
-        .pl-large.loss { color: var(--loss); }
+        .info-cell { padding: 0.75rem 0; text-align: center; border-right: 1px solid var(--border); }
+        .info-cell:last-child { border-right: none; }
+        .info-cell-label { font-size: 0.68rem; color: var(--muted); font-weight: 500; margin-bottom: 0.25rem; }
+        .info-cell-val { font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--text); }
 
+        .holding-card { padding: 1.25rem 1.5rem; animation: fadeUp 0.3s ease 0.06s both; }
+        .holding-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+        .chip-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .chip { background: var(--chip-bg); border-radius: 8px; padding: 0.3rem 0.65rem; font-size: 0.78rem; color: var(--muted); }
+        .chip strong { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); font-size: 0.8rem; }
+        .pl-big { font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700; }
         .invest-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 0.875rem; padding-top: 0.875rem;
+            border-top: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem;
         }
-        .invest-label {
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-        .invest-label strong {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            color: var(--text);
-            margin-left: 0.35rem;
-        }
-        .roi-pill {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: 700;
-            padding: 0.3rem 0.7rem;
-            border-radius: 999px;
-        }
+        .invest-info { font-size: 0.8rem; color: var(--muted); }
+        .invest-info strong { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); margin-left: 0.3rem; }
+        .roi-pill { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.75rem; border-radius: 999px; }
         .roi-pill.gain { background: var(--gain-bg); color: var(--gain); }
         .roi-pill.loss { background: var(--loss-bg); color: var(--loss); }
 
-        .chart-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem;
-            animation: fadeUp 0.3s ease 0.08s both;
-            transition: background 0.2s, border-color 0.2s;
+        .period-tabs { display: flex; gap: 0.375rem; margin-bottom: 0.875rem; }
+        .period-btn {
+            padding: 0.3rem 0.7rem; border-radius: 7px;
+            font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700;
+            color: var(--muted); border: 1px solid var(--border); background: transparent; cursor: pointer;
+            transition: background 0.12s, color 0.12s, border-color 0.12s;
         }
-        .chart-wrap {
-            position: relative;
-            aspect-ratio: 16 / 9;
-        }
+        .period-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+        .period-btn:hover:not(.active) { background: var(--row-hov); color: var(--text); }
 
-        .error-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 3rem 1rem;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.875rem;
-        }
+        .chart-card { padding: 1.25rem; animation: fadeUp 0.3s ease 0.12s both; }
+        .chart-wrap { position: relative; aspect-ratio: 16/9; }
+        .error-card { padding: 3rem 1rem; text-align: center; color: var(--muted); font-size: 0.875rem; }
 
         @media (max-width: 640px) {
-            .current-price { font-size: 1.7rem; }
-            .price-main-row { flex-direction: column; }
-            .holding-right { align-items: flex-start; }
-            .chip-row { justify-content: flex-start; }
-            .chart-wrap { aspect-ratio: 4 / 3; }
+            .current-price { font-size: 1.6rem; }
+            .price-row { flex-direction: column; }
+            .info-grid { grid-template-columns: repeat(2, 1fr); }
+            .info-cell:nth-child(2) { border-right: none; }
+            .info-cell:nth-child(3) { border-right: 1px solid var(--border); }
+            .chart-wrap { aspect-ratio: 4/3; }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <a href="{{ url_for('home') }}" class="back-btn" aria-label="돌아가기">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <div class="nav-stock">
             <span class="nav-name">{{ item_info.ovrs_item_name|default('종목') }}</span>
@@ -282,14 +95,13 @@
         </button>
     </nav>
 
-    <div class="page">
-        {% if item_info and item_info.rt_cd != '1' %}
+    <div class="page" style="display:flex;flex-direction:column;gap:0.875rem;">
+        {% if item_info %}
+        {% set is_gain = item_info.sign|default('') in ['1','2'] %}
+        {% set is_loss = item_info.sign|default('') in ['4','5'] %}
 
-        {% set is_gain = item_info.sign|default('') == '2' %}
-        {% set is_loss = item_info.sign|default('') == '5' %}
-
-        <div class="price-card">
-            <div class="price-main-row">
+        <div class="card price-card">
+            <div class="price-row">
                 <div>
                     <div class="current-price">${{ "{:,.2f}".format(item_info.clos|default(0)|float) }}</div>
                     <div class="price-change">
@@ -301,165 +113,190 @@
                         </span>
                     </div>
                 </div>
-
-                {% if holding_info %}
-                {% set h_roi = holding_info.evlu_pfls_rt|default(0)|float %}
-                {% set h_invested = (holding_info.pchs_avg_pric|default(0)|float) * (holding_info.ovrs_cblc_qty|default(0)|float) %}
-                <div class="holding-right">
-                    <div class="chip-row">
-                        <div class="chip">평단가 <strong>${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</strong></div>
-                        <div class="chip">보유수량 <strong>{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</strong></div>
-                    </div>
-                    <div class="pl-large {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}gain{% else %}loss{% endif %}">
-                        {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}+{% endif %}${{ "{:,.2f}".format(holding_info.frcr_evlu_pfls_amt|default(0)|float) }}
+            </div>
+            <!-- OHLC + 거래량 -->
+            <div class="info-grid">
+                <div class="info-cell">
+                    <div class="info-cell-label">시가</div>
+                    <div class="info-cell-val">${{ "{:,.2f}".format(item_info.open|default(0)|float) }}</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-label">고가</div>
+                    <div class="info-cell-val gain">${{ "{:,.2f}".format(item_info.high|default(0)|float) }}</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-label">저가</div>
+                    <div class="info-cell-val loss">${{ "{:,.2f}".format(item_info.low|default(0)|float) }}</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-label">거래량</div>
+                    <div class="info-cell-val">
+                        {% set vol = item_info.tvol|default(0)|int %}
+                        {% if vol >= 1000000 %}{{ "%.1f"|format(vol/1000000) }}M
+                        {% elif vol >= 1000 %}{{ "%.0f"|format(vol/1000) }}K
+                        {% else %}{{ vol }}{% endif %}
                     </div>
                 </div>
-                {% endif %}
             </div>
+        </div>
 
-            {% if holding_info %}
+        {% if holding_info %}
+        {% set h_roi = holding_info.roi_rt|default(0)|float %}
+        <div class="card holding-card">
+            <p class="section-label" style="margin-bottom:0.75rem;">내 보유 정보</p>
+            <div class="holding-row">
+                <div class="chip-group">
+                    <div class="chip">평단가 <strong>${{ "{:,.2f}".format(holding_info.pchs_avg_pric|default(0)|float) }}</strong></div>
+                    <div class="chip">수량 <strong>{{ "{:,.0f}".format(holding_info.ovrs_cblc_qty|default(0)|float) }}주</strong></div>
+                    <div class="chip">평가금액 <strong>${{ "{:,.2f}".format(holding_info.ovrs_stck_evlu_amt|default(0)|float) }}</strong></div>
+                </div>
+                <div class="pl-big {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}gain{% else %}loss{% endif %}">
+                    {% if (holding_info.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}+{% endif %}${{ "{:,.2f}".format(holding_info.frcr_evlu_pfls_amt|default(0)|float) }}
+                </div>
+            </div>
             <div class="invest-row">
-                <div class="invest-label">
-                    투자금액
-                    <strong>${{ "{:,.2f}".format(h_invested) }}</strong>
+                <div class="invest-info">
+                    투자금액<strong>${{ "{:,.2f}".format(holding_info.invested_amt|default(0)) }}</strong>
                 </div>
                 <div class="roi-pill {% if h_roi >= 0 %}gain{% else %}loss{% endif %}">
                     투자대비 {% if h_roi >= 0 %}+{% endif %}{{ "%.2f"|format(h_roi) }}%
                 </div>
             </div>
-            {% endif %}
         </div>
+        {% endif %}
 
-        <div class="chart-card">
-            <div class="chart-wrap">
-                <canvas id="stockChart"></canvas>
+        <div>
+            <div class="period-tabs">
+                <button class="period-btn" onclick="setPeriod(22,this)">1M</button>
+                <button class="period-btn active" onclick="setPeriod(66,this)">3M</button>
+                <button class="period-btn" onclick="setPeriod(9999,this)">전체</button>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-wrap"><canvas id="stockChart"></canvas></div>
             </div>
         </div>
 
         {% else %}
-        <div class="error-card">종목 정보를 불러올 수 없습니다.</div>
+        <div class="card error-card">종목 정보를 불러올 수 없습니다.</div>
         {% endif %}
     </div>
 
     <script>
         (function() {
-            const saved = localStorage.getItem('iv-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', saved);
-            updateIcons(saved);
+            const t = localStorage.getItem('iv-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+            updateIcons(t);
         })();
         function toggleTheme() {
-            const cur = document.documentElement.getAttribute('data-theme');
+            const cur  = document.documentElement.getAttribute('data-theme');
             const next = cur === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('iv-theme', next);
             updateIcons(next);
-            if (window._chart) { applyChartTheme(window._chart, next); window._chart.update(); }
+            if (window._chart) { applyTheme(window._chart, next); window._chart.update(); }
         }
         function updateIcons(t) {
             document.getElementById('icon-sun').style.display  = t === 'dark'  ? 'block' : 'none';
             document.getElementById('icon-moon').style.display = t === 'light' ? 'block' : 'none';
         }
-        function getThemeColors(t) {
+        function themeColors(t) {
             return {
-                grid:    t === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                tick:    t === 'dark' ? '#5A5A7A' : '#8A8A9A',
-                tooltip: { bg: t === 'dark' ? '#1E1E2E' : '#fff', border: t === 'dark' ? '#2A2A3A' : '#E8E8EE' }
+                grid: t==='dark'?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)',
+                tick: t==='dark'?'#5A5A7A':'#8A8A9A',
+                tt: { bg: t==='dark'?'#1E1E2E':'#fff', border: t==='dark'?'#2A2A3A':'#E8E8EE' }
             };
         }
-        function applyChartTheme(chart, t) {
-            const c = getThemeColors(t);
-            chart.options.scales.x.grid.color = c.grid;
-            chart.options.scales.x.ticks.color = c.tick;
-            chart.options.scales.yPrice.grid.color = c.grid;
-            chart.options.scales.yPrice.ticks.color = c.tick;
-            chart.options.scales.yVolume.ticks.color = c.tick;
-            chart.options.plugins.tooltip.backgroundColor = c.tooltip.bg;
-            chart.options.plugins.tooltip.borderColor = c.tooltip.border;
+        function applyTheme(chart, t) {
+            const c = themeColors(t);
+            ['x','yPrice'].forEach(k => { chart.options.scales[k].grid.color=c.grid; chart.options.scales[k].ticks.color=c.tick; });
+            chart.options.scales.yVolume.ticks.color=c.tick;
+            chart.options.plugins.tooltip.backgroundColor=c.tt.bg;
+            chart.options.plugins.tooltip.borderColor=c.tt.border;
         }
 
-        {% if item_info and item_info.rt_cd != '1' %}
-        const rawData = JSON.parse('{{ chart_data|safe }}');
-        const daily = rawData.output2 || [];
+        {% if item_info %}
+        const raw = JSON.parse('{{ chart_data|safe }}');
+        const daily = (raw.output2 || []).slice().reverse();
 
-        const lineData = daily.map(d => ({
+        const allLine = daily.map(d => ({
             x: new Date(d.xymd.slice(0,4)+'-'+d.xymd.slice(4,6)+'-'+d.xymd.slice(6,8)).getTime(),
             y: parseFloat(d.clos)
         }));
-        const volData = daily.map(d => ({
+        const allVol = daily.map(d => ({
             x: new Date(d.xymd.slice(0,4)+'-'+d.xymd.slice(4,6)+'-'+d.xymd.slice(6,8)).getTime(),
             y: parseFloat(d.tvol)
         }));
 
-        const startP = lineData.length ? lineData[0].y : 0;
-        const endP   = lineData.length ? lineData[lineData.length-1].y : 0;
-        const isUp   = endP >= startP;
-        const trendC = isUp ? '#EF4444' : '#3B82F6';
-        const trendR = isUp ? '239,68,68' : '59,130,246';
+        function trendColor(data) {
+            if (!data.length) return { line:'#8A8A9A', rgb:'138,138,154' };
+            return data[data.length-1].y >= data[0].y
+                ? { line:'#EF4444', rgb:'239,68,68' }
+                : { line:'#3B82F6', rgb:'59,130,246' };
+        }
 
-        const theme0 = document.documentElement.getAttribute('data-theme') || 'light';
-        const tc0 = getThemeColors(theme0);
+        const t0 = document.documentElement.getAttribute('data-theme')||'light';
+        const tc0 = themeColors(t0);
+        const tr0 = trendColor(allLine);
 
         const chart = new Chart(document.getElementById('stockChart').getContext('2d'), {
             data: {
                 datasets: [{
-                    type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
-                    borderColor: trendC, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
+                    type:'line', label:'주가', data:allLine, yAxisID:'yPrice',
+                    borderColor:tr0.line, borderWidth:2, pointRadius:0, tension:0.1, fill:true,
                     backgroundColor: ctx => {
                         const {chartArea} = ctx.chart;
                         if (!chartArea) return null;
-                        const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                        g.addColorStop(0, `rgba(${trendR},0.18)`);
-                        g.addColorStop(1, `rgba(${trendR},0)`);
+                        const g = ctx.chart.ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+                        g.addColorStop(0,`rgba(${tr0.rgb},0.18)`);
+                        g.addColorStop(1,`rgba(${tr0.rgb},0)`);
                         return g;
                     }
                 },{
-                    type: 'bar', label: '거래량', data: volData, yAxisID: 'yVolume',
-                    backgroundColor: 'rgba(138,138,154,0.3)'
+                    type:'bar', label:'거래량', data:allVol, yAxisID:'yVolume',
+                    backgroundColor:'rgba(138,138,154,0.3)'
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
+                responsive:true, maintainAspectRatio:false,
+                interaction:{mode:'index',intersect:false},
                 scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: 'day', displayFormats: { day: 'M/d' } },
-                        grid: { color: tc0.grid },
-                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 } }
-                    },
-                    yPrice: {
-                        position: 'left',
-                        grid: { color: tc0.grid },
-                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 }, callback: v => '$'+v.toLocaleString() }
-                    },
-                    yVolume: {
-                        position: 'right', min: 0,
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: tc0.tick, font: { family: 'Space Mono', size: 10 }, callback: v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v }
-                    }
+                    x: { type:'time', time:{unit:'day',displayFormats:{day:'M/d'}},
+                         grid:{color:tc0.grid}, ticks:{color:tc0.tick,font:{family:'Space Mono',size:10}} },
+                    yPrice: { position:'left', grid:{color:tc0.grid},
+                              ticks:{color:tc0.tick,font:{family:'Space Mono',size:10},callback:v=>'$'+v.toLocaleString()} },
+                    yVolume: { position:'right', min:0, grid:{drawOnChartArea:false},
+                               ticks:{color:tc0.tick,font:{family:'Space Mono',size:10},
+                                      callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v} }
                 },
                 plugins: {
-                    legend: { labels: { color: tc0.tick, font: { family: 'IBM Plex Sans', size: 12 } } },
-                    tooltip: {
-                        backgroundColor: tc0.tooltip.bg,
-                        titleColor: theme0 === 'dark' ? '#F0F0F5' : '#111111',
-                        bodyColor:  theme0 === 'dark' ? '#C0C0D0' : '#3A3A4A',
-                        borderColor: tc0.tooltip.border,
-                        borderWidth: 1,
-                        callbacks: {
-                            label: ctx => {
-                                const label = (ctx.dataset.label||'')+': ';
-                                if (ctx.parsed.y == null) return label;
-                                return ctx.dataset.type === 'line'
-                                    ? label + '$' + ctx.parsed.y.toLocaleString()
-                                    : label + ctx.parsed.y.toLocaleString();
-                            }
-                        }
+                    legend:{labels:{color:tc0.tick,font:{family:'IBM Plex Sans',size:12}}},
+                    tooltip:{
+                        backgroundColor:tc0.tt.bg, borderColor:tc0.tt.border, borderWidth:1,
+                        titleColor:t0==='dark'?'#F0F0F5':'#111111',
+                        bodyColor: t0==='dark'?'#C0C0D0':'#3A3A4A',
+                        callbacks:{label:ctx=>{
+                            const l=(ctx.dataset.label||'')+': ';
+                            return ctx.dataset.type==='line'?l+'$'+ctx.parsed.y.toLocaleString():l+ctx.parsed.y.toLocaleString();
+                        }}
                     }
                 }
             }
         });
         window._chart = chart;
+
+        function setPeriod(n, btn) {
+            document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            const slice = n >= 9999 ? allLine.length : n;
+            const filtL = allLine.slice(-slice);
+            const filtV = allVol.slice(-slice);
+            const tr = trendColor(filtL);
+            chart.data.datasets[0].data = filtL;
+            chart.data.datasets[0].borderColor = tr.line;
+            chart.data.datasets[1].data = filtV;
+            chart.update();
+        }
+        setPeriod(66, document.querySelectorAll('.period-btn')[1]);
         {% endif %}
     </script>
 </body>

@@ -1,0 +1,255 @@
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Theme tokens ── */
+:root {
+  --bg:        #F5F5F7;
+  --card:      #FFFFFF;
+  --border:    #E8E8EE;
+  --text:      #111111;
+  --text-sec:  #3A3A4A;
+  --muted:     #8A8A9A;
+  --accent:    #5B4CF5;
+  --accent-bg: #EBE8FE;
+  --accent-hov:#4A3CE0;
+  --gain:      #EF4444;
+  --gain-bg:   #FFF2F2;
+  --loss:      #3B82F6;
+  --loss-bg:   #EFF6FF;
+  --row-hov:   #F8F8FA;
+  --chip-bg:   #F2F2F6;
+  --seg-bg:    #EBEBEF;
+  --seg-active:#FFFFFF;
+  --shadow:    0 2px 16px rgba(0,0,0,0.06);
+  --chart-grid:rgba(0,0,0,0.05);
+  --chart-tick:#8A8A9A;
+  --tt-bg:     #FFFFFF;
+  --tt-border: #E8E8EE;
+}
+[data-theme="dark"] {
+  --bg:        #0D0D14;
+  --card:      #16161F;
+  --border:    #1E1E2E;
+  --text:      #F0F0F5;
+  --text-sec:  #C0C0D0;
+  --muted:     #5A5A7A;
+  --accent-bg: #1E1B3A;
+  --gain-bg:   #2A1010;
+  --loss-bg:   #0F1A2A;
+  --row-hov:   #1C1C28;
+  --chip-bg:   #1C1C28;
+  --seg-bg:    #1E1E2E;
+  --seg-active:#2A2A3A;
+  --shadow:    0 2px 24px rgba(0,0,0,0.4);
+  --chart-grid:rgba(255,255,255,0.05);
+  --chart-tick:#5A5A7A;
+  --tt-bg:     #1E1E2E;
+  --tt-border: #2A2A3A;
+}
+
+html { transition: background 0.2s; }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 72px; /* bottom nav height */
+}
+
+/* ── Top Navbar ── */
+.navbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+  display: flex; align-items: center;
+  padding: 0 1.25rem; gap: 0.75rem;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav-brand {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-shrink: 0; text-decoration: none;
+}
+.nav-spacer { flex: 1; }
+.icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted); flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.icon-btn:hover { background: var(--row-hov); color: var(--text); }
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  text-decoration: none; color: var(--text); flex-shrink: 0;
+  transition: background 0.12s;
+}
+.back-btn:hover { background: var(--row-hov); }
+.nav-stock { display: flex; align-items: baseline; gap: 0.5rem; flex: 1; min-width: 0; }
+.nav-name {
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+  color: var(--text); letter-spacing: -0.02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-ticker {
+  font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--muted); flex-shrink: 0;
+}
+.logout-btn {
+  text-decoration: none; font-size: 0.8rem; font-weight: 600;
+  color: var(--muted); padding: 0.4rem 0.75rem; border-radius: 8px;
+  transition: background 0.12s, color 0.12s;
+}
+.logout-btn:hover { background: var(--row-hov); color: var(--text); }
+
+/* ── Bottom Tab Bar ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 0.5rem;
+  text-decoration: none; color: var(--muted);
+  font-size: 0.7rem; font-weight: 600;
+  transition: color 0.12s;
+  cursor: pointer; border: none; background: none; font-family: 'IBM Plex Sans', sans-serif;
+}
+.tab-item svg { display: block; }
+.tab-item.active { color: var(--accent); }
+.tab-item:hover { color: var(--text); }
+
+/* ── Page wrapper ── */
+.page {
+  max-width: 1024px; margin: 0 auto;
+  padding: 1.25rem 1.25rem 1rem;
+}
+
+/* ── Section label ── */
+.section-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--muted);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+/* ── Gain / Loss ── */
+.gain { color: var(--gain); }
+.loss { color: var(--loss); }
+.muted { color: var(--muted); }
+
+/* ── ROI badge ── */
+.roi-badge {
+  display: inline-block;
+  font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700;
+  padding: 0.18rem 0.45rem; border-radius: 5px;
+}
+.roi-badge.gain { background: var(--gain-bg); color: var(--gain); }
+.roi-badge.loss { background: var(--loss-bg); color: var(--loss); }
+
+/* ── Segment control ── */
+.segment { display: flex; }
+.seg-inner {
+  position: relative; display: inline-flex;
+  background: var(--seg-bg); border-radius: 10px; padding: 3px;
+}
+.seg-indicator {
+  position: absolute; top: 3px; left: 3px;
+  height: calc(100% - 6px);
+  background: var(--seg-active); border-radius: 7px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s cubic-bezier(.4,0,.2,1), width 0.2s;
+  pointer-events: none;
+}
+.seg-btn {
+  position: relative; z-index: 1;
+  padding: 0.38rem 1rem;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+  color: var(--muted); border: none; background: transparent;
+  border-radius: 7px; cursor: pointer; white-space: nowrap;
+  transition: color 0.15s;
+}
+.seg-btn.active { color: var(--text); }
+
+/* ── Table ── */
+.table-card { overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 0.65rem 1rem;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.7rem; font-weight: 600;
+  color: var(--muted); text-align: right;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody td {
+  padding: 0 1rem; height: 54px; vertical-align: middle;
+  font-family: 'Space Mono', monospace; font-size: 0.8rem;
+  color: var(--text); text-align: right;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+  transition: background 0.12s;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody td:first-child {
+  font-family: 'IBM Plex Sans', sans-serif; text-align: left;
+}
+.clickable-row { cursor: pointer; }
+.clickable-row:hover td { background: var(--row-hov); }
+.stock-name { font-weight: 700; font-size: 0.875rem; }
+.stock-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+.empty-cell {
+  text-align: center !important; padding: 2.5rem 1rem !important;
+  color: var(--muted); font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 0.875rem; height: auto !important;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes chipIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Theme icon toggle helper ── */
+.sun-icon, .moon-icon { display: block; }
+
+/* ── Mobile table → card ── */
+@media (max-width: 640px) {
+  body { padding-bottom: 64px; }
+  table thead { display: none; }
+  table, tbody, tr, td { display: block; width: 100%; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td {
+    display: flex; justify-content: space-between; align-items: center;
+    height: auto; padding: 0.35rem 1rem;
+    border-bottom: none; white-space: normal; font-size: 0.8rem;
+  }
+  tbody td:first-child { padding: 0.75rem 1rem 0.3rem; }
+  tbody td::before {
+    content: attr(data-label);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem;
+    color: var(--muted); font-weight: 500; flex-shrink: 0; margin-right: 0.5rem;
+  }
+  tbody td:first-child::before { display: none; }
+  tbody td.empty-cell { display: block; }
+  tbody td.empty-cell::before { display: none; }
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오류 — InvestmentViewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+  <style>
+    .error-page {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: calc(100vh - 56px - 72px);
+      text-align: center; padding: 2rem 1.25rem;
+    }
+    .error-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--gain-bg);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+    .error-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem; font-weight: 800; color: var(--text);
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .error-message {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.875rem; color: var(--muted);
+      max-width: 320px; line-height: 1.6; margin-bottom: 2rem;
+    }
+    .error-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 10px; cursor: pointer; text-decoration: none;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 600;
+      transition: background 0.12s;
+    }
+    .btn-primary:hover { background: var(--accent-hov); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; text-decoration: none;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 600; color: var(--muted);
+      transition: background 0.12s, color 0.12s;
+    }
+    .btn-ghost:hover { background: var(--row-hov); color: var(--text); }
+
+    .code-block {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem; color: var(--muted);
+      background: var(--chip-bg); border-radius: 8px;
+      padding: 0.6rem 1rem; margin-top: 2rem;
+      max-width: 360px; word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a class="nav-brand" href="/">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+        <polyline points="16 7 22 7 22 13"></polyline>
+      </svg>
+      IV
+    </a>
+    <span class="nav-spacer"></span>
+    <button class="icon-btn" id="themeToggle" title="테마 전환" aria-label="테마 전환">
+      <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </nav>
+
+  <div class="page">
+    <div class="error-page">
+      <div class="error-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gain)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+
+      <div class="error-title">연결 오류</div>
+      <div class="error-message">
+        {{ message or 'KIS API에 연결할 수 없습니다. 잠시 후 다시 시도하세요.' }}
+      </div>
+
+      <div class="error-actions">
+        <a href="/" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.5"></path></svg>
+          다시 시도
+        </a>
+        <a href="/logout" class="btn-ghost">로그아웃</a>
+      </div>
+
+      <div class="code-block">HTTP 503 · KIS API Token Error</div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="/" class="tab-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect>
+        <rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect>
+      </svg>
+      포트폴리오
+    </a>
+    <a href="/trades" class="tab-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"></polyline>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+      </svg>
+      체결내역
+    </a>
+    <a href="/account" class="tab-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      내 계정
+    </a>
+  </nav>
+
+  <script>
+    const root = document.documentElement;
+    const btn  = document.getElementById('themeToggle');
+    const sun  = btn.querySelector('.sun-icon');
+    const moon = btn.querySelector('.moon-icon');
+
+    function applyTheme(dark) {
+      root.setAttribute('data-theme', dark ? 'dark' : '');
+      sun.style.display  = dark ? 'none'  : 'block';
+      moon.style.display = dark ? 'block' : 'none';
+    }
+
+    let dark = localStorage.getItem('theme') === 'dark';
+    applyTheme(dark);
+
+    btn.addEventListener('click', () => {
+      dark = !dark;
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyTheme(dark);
+    });
+  </script>
+</body>
+</html>
