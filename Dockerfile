@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=app:app app.py favicon.ico ./
 COPY --chown=app:app templates ./templates
+COPY --chown=app:app static ./static
 
 USER app
 
