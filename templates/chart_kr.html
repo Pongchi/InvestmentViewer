@@ -3,255 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item_info.hts_kor_isnm|default('시세 차트') }} - 시세 차트</title>
+    <title>{{ item_info.hts_kor_isnm|default('시세 차트') }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@^3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/ko/index.js"></script>
-
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #0a2342;
-            color: #e0e0e0;
-            margin: 0; 
-            padding: 20px; 
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #F2F4F6;
+            color: #191F28;
+            min-height: 100vh;
         }
-        .container { 
-            max-width: 1000px; 
-            margin: auto; 
-            background: #1c3d5a;
-            padding: 2rem; 
-            border-radius: 12px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
-        }
-        .header {
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #E5E8EB;
+            padding: 0 1.25rem;
+            height: 56px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #4a6a8a;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.75rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        h1 { 
-            color: white;
-            margin: 0;
-            font-size: 1.8rem;
+        .back-btn {
+            text-decoration: none;
+            color: #191F28;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            transition: background 0.12s;
+            flex-shrink: 0;
         }
-        .back-link { 
-            text-decoration: none; 
-            color: #00aaff;
-            background-color: #0a2342;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            white-space: nowrap; /* [추가] 버튼 글자 줄바꿈 방지 */
+        .back-btn:hover { background: #F2F4F6; }
+        .back-btn svg { display: block; }
+        .topbar-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #191F28;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .back-link:hover {
-            background-color: #007bff;
-            color: white;
+        .topbar-code {
+            font-size: 0.8rem;
+            color: #B0B8C1;
+            font-weight: 500;
+            flex-shrink: 0;
         }
-        .price-info {
+
+        .page-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 3rem;
+        }
+
+        /* 가격 정보 */
+        .price-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            gap: 15px;
-            text-align: left;
-            margin-bottom: 2rem;
-            min-height: 60px;
-            flex-wrap: wrap; /* [추가] 공간 부족 시 줄바꿈 허용 */
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        .current-price-group .current-price {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: white;
-            margin: 0 0 5px 0;
+        .price-left .current-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #191F28;
+            letter-spacing: -0.04em;
         }
-        .current-price-group .price-change {
-            font-size: 1.1rem;
-            color: #a0c8e8;
-            margin: 0;
+        .price-left .price-change {
+            font-size: 0.9rem;
+            color: #8B95A1;
+            margin-top: 0.3rem;
         }
-        .price-change .profit, .holding-details .profit {
-            color: #ef5350; /* 상승: 빨간색 */
-        }
-        .price-change .loss, .holding-details .loss {
-            color: #42a5f5; /* 하락: 파란색 */
-        }
-        .price-change .even {
-            color: #e0e0e0; /* 보합: 흰색 */
-        }
-        .holding-details {
-            text-align: right;
-        }
-        /* [수정] 모바일 레이아웃을 위해 상세 정보 구조 스타일 추가 */
-        .holding-details .detail-group {
-            display: flex;
-            gap: 20px; /* 항목 간 간격 */
-            justify-content: flex-end; /* 오른쪽 정렬 유지 */
-            margin-bottom: 8px;
-        }
-        .holding-details .detail-item {
-            display: flex;
-            gap: 8px; /* 라벨과 값 사이 간격 */
-            align-items: baseline;
-        }
-        .holding-details .label {
-            font-weight: normal;
-            color: #a0c8e8;
-            font-size: 1rem;
-        }
-        .holding-details .value {
-            font-weight: bold;
-            color: white;
-            font-size: 1rem;
-        }
-        .holding-details .pl-value {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        .chart-container {
-            position: relative;
-            background-color: #0a2342;
-            padding: 1rem;
-            border-radius: 8px;
-            aspect-ratio: 16 / 10;
-        }
-        .error-message {
-            text-align: center;
-            padding: 4rem;
-            font-size: 1.2rem;
-        }
-        
-        /* --- [추가] 모바일 반응형 스타일 --- */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 1rem;
-            }
-            .header {
-                flex-direction: column; /* 헤더 아이템 세로 정렬 */
-                align-items: flex-start; /* 왼쪽 정렬 */
-                gap: 1rem;
-            }
-            h1 {
-                font-size: 1.4rem; /* 제목 폰트 크기 조정 */
-            }
-            .price-info {
-                flex-direction: column; /* 가격 정보 세로 정렬 */
-                align-items: flex-start; /* 왼쪽 정렬 */
-                gap: 1.5rem; /* 그룹 간 간격 추가 */
-            }
-            .current-price-group .current-price {
-                font-size: 1.8rem;
-            }
-            .holding-details {
-                width: 100%; /* 너비를 100%로 설정 */
-                text-align: left; /* 전체를 왼쪽 정렬 */
-            }
-            .holding-details .detail-group {
-                flex-direction: column; /* 평단가, 보유수량 세로 정렬 */
-                align-items: flex-start;
-                gap: 8px;
-            }
+        .price-left .price-change .profit { color: #F04452; font-weight: 600; }
+        .price-left .price-change .loss   { color: #3182F6; font-weight: 600; }
+        .price-left .price-change .even   { color: #8B95A1; }
 
-            /* ✅ [추가] 모바일에서 차트가 너무 커지는 것을 방지 */
-            .chart-container {
-                aspect-ratio: 4 / 3;
-            }
+        .holding-chips {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.4rem;
+        }
+        .chip-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chip {
+            background: #F2F4F6;
+            border-radius: 8px;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.8rem;
+            color: #4E5968;
+        }
+        .chip span { font-weight: 700; color: #191F28; }
+        .pl-chip {
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+        }
+        .pl-chip.profit { background: #FFF2F2; color: #F04452; }
+        .pl-chip.loss   { background: #EBF2FF; color: #3182F6; }
+
+        /* 차트 */
+        .chart-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.25rem 1.25rem 1rem;
+        }
+        .chart-wrap {
+            position: relative;
+            aspect-ratio: 16 / 9;
+        }
+        @media (max-width: 640px) {
+            .chart-wrap { aspect-ratio: 4 / 3; }
+        }
+
+        .error-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 3rem 1rem;
+            text-align: center;
+            color: #B0B8C1;
+            font-size: 0.9rem;
+        }
+
+        /* 모바일 */
+        @media (max-width: 640px) {
+            .price-section { flex-direction: column; align-items: flex-start; }
+            .holding-chips { align-items: flex-start; }
+            .price-left .current-price { font-size: 1.7rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📈 {{ item_info.hts_kor_isnm|default('종목 정보 없음') }} ({{ item_info.stck_shrn_iscd|default('') }})</h1>
-            <a href="{{ url_for('home') }}" class="back-link">돌아가기</a>
-        </div>
+    <nav class="topbar">
+        <a href="{{ url_for('home') }}" class="back-btn" aria-label="돌아가기">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#191F28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <span class="topbar-name">{{ item_info.hts_kor_isnm|default('종목 정보 없음') }}</span>
+        <span class="topbar-code">{{ item_info.stck_shrn_iscd|default('') }}</span>
+    </nav>
 
+    <div class="page-content">
         {% if item_info and item_info.rt_cd != '1' %}
-        <div class="price-info">
-            <div class="current-price-group">
-                <p class="current-price">{{ "{:,.0f}".format(item_info.stck_prpr|default(0)|int) }} 원</p>
-                <p class="price-change">
+        <div class="price-section">
+            <div class="price-left">
+                <div class="current-price">{{ "{:,.0f}".format(item_info.stck_prpr|default(0)|int) }}원</div>
+                <div class="price-change">
                     전일 대비
                     <span class="{% if item_info.prdy_vrss_sign|default('') == '2' %}profit{% elif item_info.prdy_vrss_sign|default('') == '5' %}loss{% else %}even{% endif %}">
-                        {% if item_info.prdy_vrss_sign|default('') == '2' %}+{% elif item_info.prdy_vrss_sign|default('') == '5' %}-{% endif %}
-                        {{ "{:,.0f}".format(item_info.prdy_vrss|default(0)|int) }}원
+                        {% if item_info.prdy_vrss_sign|default('') == '2' %}+{% elif item_info.prdy_vrss_sign|default('') == '5' %}-{% endif %}{{ "{:,.0f}".format(item_info.prdy_vrss|default(0)|int) }}원
                         ({% if item_info.prdy_vrss_sign|default('') == '2' %}+{% endif %}{{ "%.2f"|format(item_info.prdy_ctrt|default(0)|float) }}%)
                     </span>
-                </p>
-            </div>
-            
-            {% if holding_info %}
-            <div class="holding-details">
-                <div class="detail-group">
-                    <div class="detail-item">
-                        <span class="label">평단가</span>
-                        <span class="value">{{ "{:,.0f}".format(holding_info.pchs_avg_pric|default(0)|float) }}원</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">보유수량</span>
-                        <span class="value">{{ "{:,.0f}".format(holding_info.hldg_qty|default(0)|int) }}주</span>
-                    </div>
                 </div>
-                <p class="pl-value {% if (holding_info.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+            </div>
+
+            {% if holding_info %}
+            <div class="holding-chips">
+                <div class="chip-row">
+                    <div class="chip">평단가 <span>{{ "{:,.0f}".format(holding_info.pchs_avg_pric|default(0)|float) }}원</span></div>
+                    <div class="chip">보유수량 <span>{{ "{:,.0f}".format(holding_info.hldg_qty|default(0)|int) }}주</span></div>
+                </div>
+                <div class="pl-chip {% if (holding_info.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
                     {{ "{:,.0f}".format(holding_info.evlu_pfls_amt|default(0)|int) }}원
                     ({{ "%.2f"|format(holding_info.evlu_pfls_rt|default(0)|float) }}%)
-                </p>
+                </div>
             </div>
             {% endif %}
         </div>
 
-        <div class="chart-container">
-            <canvas id="stockChart"></canvas>
+        <div class="chart-card">
+            <div class="chart-wrap">
+                <canvas id="stockChart"></canvas>
+            </div>
         </div>
-        
+
         {% else %}
-        <div class="error-message">
-            <p>종목 정보를 불러올 수 없습니다. ({{ chart_data.msg1 }})</p>
-        </div>
+        <div class="error-box">종목 정보를 불러올 수 없습니다.</div>
         {% endif %}
     </div>
 
     <script>
     {% if item_info and item_info.rt_cd != '1' %}
-    // --- JavaScript 코드는 변경할 필요가 없습니다 ---
     const chartData = JSON.parse('{{ chart_data|safe }}');
     const dailyPrices = chartData.output2 || [];
     Chart.defaults.locale = 'ko';
+
     const lineData = dailyPrices.map(item => ({
-        x: new Date(item.stck_bsop_date.substring(0, 4) + '-' + item.stck_bsop_date.substring(4, 6) + '-' + item.stck_bsop_date.substring(6, 8)).getTime(),
+        x: new Date(item.stck_bsop_date.slice(0,4) + '-' + item.stck_bsop_date.slice(4,6) + '-' + item.stck_bsop_date.slice(6,8)).getTime(),
         y: parseFloat(item.stck_clpr)
     }));
     const volumeData = dailyPrices.map(item => ({
-        x: new Date(item.stck_bsop_date.substring(0, 4) + '-' + item.stck_bsop_date.substring(4, 6) + '-' + item.stck_bsop_date.substring(6, 8)).getTime(),
+        x: new Date(item.stck_bsop_date.slice(0,4) + '-' + item.stck_bsop_date.slice(4,6) + '-' + item.stck_bsop_date.slice(6,8)).getTime(),
         y: parseFloat(item.acml_vol)
     }));
+
     const startPrice = lineData.length > 0 ? lineData[0].y : 0;
-    const endPrice = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
-    const trendColor = endPrice >= startPrice ? '#ef5350' : '#42a5f5';
-    const ctx = document.getElementById('stockChart').getContext('2d');
-    new Chart(ctx, {
+    const endPrice   = lineData.length > 0 ? lineData[lineData.length - 1].y : 0;
+    const isUp = endPrice >= startPrice;
+    const trendColor = isUp ? '#F04452' : '#3182F6';
+    const trendRgb   = isUp ? '240,68,82' : '49,130,246';
+
+    new Chart(document.getElementById('stockChart').getContext('2d'), {
         data: {
             datasets: [{
                 type: 'line', label: '주가', data: lineData, yAxisID: 'yPrice',
                 borderColor: trendColor, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
-                backgroundColor: (context) => {
-                    const {ctx, chartArea} = context.chart;
-                    if (!chartArea) { return null; }
-                    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                    const color = endPrice >= startPrice ? '239, 83, 80' : '66, 165, 245';
-                    gradient.addColorStop(1, `rgba(${color}, 0.3)`);
-                    return gradient;
-                },
+                backgroundColor: (ctx) => {
+                    const { chartArea } = ctx.chart;
+                    if (!chartArea) return null;
+                    const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    g.addColorStop(0, `rgba(${trendRgb},0.15)`);
+                    g.addColorStop(1, `rgba(${trendRgb},0)`);
+                    return g;
+                }
             }, {
                 type: 'bar', label: '거래량', data: volumeData, yAxisID: 'yVolume',
-                backgroundColor: 'rgba(110, 137, 161, 0.5)'
+                backgroundColor: 'rgba(176,184,193,0.4)'
             }]
         },
         options: {
@@ -260,46 +243,44 @@
             scales: {
                 x: {
                     type: 'time',
-                    time: { unit: 'day', displayFormats: { day: 'M월 d일' }},
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#e0e0e0', source: 'auto' }
+                    time: { unit: 'day', displayFormats: { day: 'M/d' } },
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { color: '#B0B8C1', font: { family: 'Pretendard', size: 11 } }
                 },
                 yPrice: {
                     position: 'left',
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { 
-                        color: '#e0e0e0',
-                        callback: function(value) { return value.toLocaleString() + '원'; }
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        color: '#B0B8C1',
+                        font: { family: 'Pretendard', size: 11 },
+                        callback: v => v.toLocaleString() + '원'
                     }
                 },
                 yVolume: {
                     position: 'right', min: 0,
                     grid: { drawOnChartArea: false },
-                    ticks: { 
-                        color: '#e0e0e0',
-                        callback: function(value) {
-                            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                            if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
-                            return value;
-                        }
+                    ticks: {
+                        color: '#B0B8C1',
+                        font: { family: 'Pretendard', size: 11 },
+                        callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v
                     }
                 }
             },
             plugins: {
-                legend: { labels: { color: '#e0e0e0' } },
+                legend: { labels: { color: '#8B95A1', font: { family: 'Pretendard', size: 12 } } },
                 tooltip: {
+                    backgroundColor: '#fff',
+                    titleColor: '#191F28',
+                    bodyColor: '#4E5968',
+                    borderColor: '#E5E8EB',
+                    borderWidth: 1,
                     callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) { label += ': '; }
-                            if (context.parsed.y !== null) {
-                                if (context.dataset.type === 'line') {
-                                    label += new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(context.parsed.y);
-                                } else {
-                                    label += context.parsed.y.toLocaleString();
-                                }
-                            }
-                            return label;
+                        label: ctx => {
+                            const label = (ctx.dataset.label || '') + ': ';
+                            if (ctx.parsed.y == null) return label;
+                            return ctx.dataset.type === 'line'
+                                ? label + ctx.parsed.y.toLocaleString() + '원'
+                                : label + ctx.parsed.y.toLocaleString();
                         }
                     }
                 }

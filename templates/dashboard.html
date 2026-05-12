@@ -4,395 +4,354 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 투자 현황</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #0a2342;
-            color: #e0e0e0;
-            margin: 0; 
-            padding: 20px; 
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #F2F4F6;
+            color: #191F28;
+            min-height: 100vh;
         }
-        .container { 
-            max-width: 900px; 
-            margin: auto; 
-            background: #1c3d5a;
-            padding: 2.5rem; 
-            border-radius: 12px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #4a6a8a;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap; /* [수정] 모바일에서 줄바꿈이 가능하도록 설정 */
-        }
-        h1 { 
-            color: white;
-            margin: 0;
-            font-size: 1.8rem;
-        }
-        .logout { 
-            text-decoration: none; 
-            color: #00aaff;
-            background-color: #0a2342;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        .logout:hover {
-            background-color: #007bff;
-            color: white;
-        }
-        
-        /* --- 토글 스위치 스타일 시작 --- */
-        .switch-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #4a6a8a;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #007bff;
-        }
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-        /* --- 토글 스위치 스타일 끝 --- */
 
+        /* 상단 네비 */
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #E5E8EB;
+            padding: 0 1.5rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .topbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #191F28;
+        }
+        .logout-btn {
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #8B95A1;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .logout-btn:hover { background: #F2F4F6; }
+
+        .page-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 3rem;
+        }
+
+        /* 국내/해외 세그먼트 탭 */
+        .segment {
+            display: inline-flex;
+            background: #E5E8EB;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 1.5rem;
+        }
+        .segment-btn {
+            padding: 0.45rem 1.25rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #8B95A1;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .segment-btn.active {
+            background: #fff;
+            color: #191F28;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 요약 카드 그리드 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
         .summary-card {
-            background-color: #0a2342;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #007bff;
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.25rem;
         }
-        .summary-card.profit-border { border-left-color: #28a745; }
-        .summary-card.loss-border { border-left-color: #dc3545; }
-        .summary-card h3 {
-            margin: 0 0 0.5rem 0;
-            color: #a0c8e8;
-            font-size: 1rem;
-            font-weight: normal;
+        .summary-card .label {
+            font-size: 0.8rem;
+            color: #8B95A1;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
         }
-        .summary-card p {
-            margin: 0;
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: white;
+        .summary-card .amount {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #191F28;
+            letter-spacing: -0.03em;
         }
-        .summary-card .profit { color: #28a745; }
-        .summary-card .loss { color: #dc3545; }
-        .currency {
-            font-size: 1rem;
-            font-weight: normal;
-            color: #a0c8e8;
-            margin-left: 5px;
+        .summary-card .amount .unit {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8B95A1;
+            margin-left: 3px;
+        }
+        .summary-card .amount.profit { color: #F04452; }
+        .summary-card .amount.loss   { color: #3182F6; }
+
+        /* 보유 종목 섹션 */
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #8B95A1;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.02em;
+        }
+        .holdings-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        h2 {
-            color: white;
-            border-bottom: 1px solid #4a6a8a;
-            padding-bottom: 0.5rem;
-            margin-top: 2rem;
+        /* 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 1.5rem; 
+        thead th {
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #B0B8C1;
+            text-align: right;
+            border-bottom: 1px solid #F2F4F6;
+            white-space: nowrap;
         }
-        th, td { 
-            border-bottom: 1px solid #4a6a8a; 
-            padding: 15px; 
-            text-align: right; 
+        thead th:first-child { text-align: left; }
+        tbody td {
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: #191F28;
+            text-align: right;
+            border-bottom: 1px solid #F2F4F6;
+            white-space: nowrap;
         }
-        th { 
-            background-color: #0a2342;
-            color: #a0c8e8;
+        tbody tr:last-child td { border-bottom: none; }
+        tbody td:first-child { text-align: left; font-weight: 600; }
+        tbody tr.clickable-row { cursor: pointer; transition: background 0.12s; }
+        tbody tr.clickable-row:hover { background: #F9FAFB; }
+
+        .stock-name { font-weight: 700; color: #191F28; }
+        .stock-sub  { font-size: 0.75rem; color: #B0B8C1; margin-top: 2px; }
+
+        .profit { color: #F04452; }
+        .loss   { color: #3182F6; }
+
+        .empty-row td {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: #B0B8C1;
             font-size: 0.9rem;
         }
-        td:first-child, th:first-child {
-            text-align: left;
-            font-weight: bold;
-        }
-        .profit { color: #33cc66; }
-        .loss { color: #ff4d4d; }
 
-        tbody tr.clickable-row {
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        tbody tr.clickable-row:hover {
-            background-color: #2c5d8a;
-        }
-        
-        #overseas-view { display: none; }
+        /* 모바일 카드형 테이블 */
+        @media (max-width: 640px) {
+            .summary-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+            .summary-card .amount { font-size: 1.1rem; }
 
-        /* --- [추가] 모바일 반응형 스타일 --- */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
+            table thead { display: none; }
+            table, tbody, tr, td { display: block; width: 100%; }
+            tbody tr {
+                padding: 1rem;
+                border-bottom: 1px solid #F2F4F6;
             }
-            .container {
-                padding: 1.5rem;
-            }
-            .header {
-                flex-direction: column;
-                gap: 1rem;
+            tbody tr:last-child { border-bottom: none; }
+            tbody td {
+                display: flex;
+                justify-content: space-between;
                 align-items: center;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-            .summary-card p {
-                font-size: 1.3rem;
-            }
-
-            /* --- 반응형 테이블 스타일 --- */
-            table thead {
-                display: none;
-            }
-            table, table tbody, table tr, table td {
-                display: block;
-                width: 100%;
-            }
-            table tr {
-                margin-bottom: 1rem;
-                border: 1px solid #4a6a8a;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            table td {
-                /* ✅ [수정] 이 한 줄을 추가하여 박스 크기 계산 문제를 해결합니다. */
-                box-sizing: border-box; 
-                text-align: right;
-                padding-left: 50%; 
-                position: relative;
-                border-bottom: 1px dotted #4a6a8a;
-            }
-            table td:last-child {
+                padding: 0.3rem 0;
                 border-bottom: none;
+                white-space: normal;
+                text-align: right;
             }
-            table td::before {
+            tbody td:first-child {
+                font-size: 1rem;
+                padding-bottom: 0.6rem;
+                display: block;
+            }
+            tbody td::before {
                 content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                width: 45%;
-                padding-right: 10px;
+                font-size: 0.8rem;
+                color: #8B95A1;
+                font-weight: 500;
+                flex-shrink: 0;
                 text-align: left;
-                font-weight: bold;
-                color: #a0c8e8;
             }
-            table td:first-child {
-                background-color: #0a2342;
-                text-align: center;
-                padding: 15px;
-                font-size: 1.1rem;
-            }
-            table td:first-child::before {
-                content: "";
-            }
+            tbody td:first-child::before { display: none; }
+            .empty-row td { display: block; text-align: center; }
+            .empty-row td::before { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📈 나의 투자 현황</h1>
-            <div class="switch-container">
-                <span>국내</span>
-                <label class="switch">
-                    <input type="checkbox" id="market-switch">
-                    <span class="slider"></span>
-                </label>
-                <span>해외</span>
-            </div>
-            <a href="{{ url_for('logout') }}" class="logout">로그아웃</a>
+    <nav class="topbar">
+        <span class="topbar-title">내 투자 현황</span>
+        <a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a>
+    </nav>
+
+    <div class="page-content">
+        <div class="segment">
+            <button class="segment-btn active" id="btn-domestic" onclick="switchMarket(false)">국내</button>
+            <button class="segment-btn" id="btn-overseas" onclick="switchMarket(true)">해외</button>
         </div>
 
+        <!-- 국내 뷰 -->
         <div id="domestic-view">
             <div class="summary-grid">
                 <div class="summary-card">
-                    <h3>순자산</h3>
-                    <p>{{ "{:,.0f}".format(summary_kr.nass_amt|default(0)|int) }}<span class="currency">원</span></p>
+                    <div class="label">순자산</div>
+                    <div class="amount">{{ "{:,.0f}".format(summary_kr.nass_amt|default(0)|int) }}<span class="unit">원</span></div>
                 </div>
                 <div class="summary-card">
-                    <h3>총평가금액</h3>
-                    <p>{{ "{:,.0f}".format(summary_kr.evlu_amt_smtl_amt|default(0)|int) }}<span class="currency">원</span></p>
+                    <div class="label">총평가금액</div>
+                    <div class="amount">{{ "{:,.0f}".format(summary_kr.evlu_amt_smtl_amt|default(0)|int) }}<span class="unit">원</span></div>
                 </div>
-                 <div class="summary-card">
-                    <h3>예수금</h3>
-                    <p>{{ "{:,.0f}".format(summary_kr.dnca_tot_amt|default(0)|int) }}<span class="currency">원</span></p>
+                <div class="summary-card">
+                    <div class="label">예수금</div>
+                    <div class="amount">{{ "{:,.0f}".format(summary_kr.dnca_tot_amt|default(0)|int) }}<span class="unit">원</span></div>
                 </div>
-                <div class="summary-card {% if (summary_kr.evlu_pfls_smtl_amt|default(0)|int) >= 0 %}profit-border{% else %}loss-border{% endif %}">
-                    <h3>총평가손익</h3>
-                    <p class="{% if (summary_kr.evlu_pfls_smtl_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
-                        {{ "{:,.0f}".format(summary_kr.evlu_pfls_smtl_amt|default(0)|int) }}<span class="currency">원</span>
-                    </p>
+                <div class="summary-card">
+                    <div class="label">총평가손익</div>
+                    <div class="amount {% if (summary_kr.evlu_pfls_smtl_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+                        {{ "{:,.0f}".format(summary_kr.evlu_pfls_smtl_amt|default(0)|int) }}<span class="unit">원</span>
+                    </div>
                 </div>
             </div>
 
-            <h2>보유 종목 (국내)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>종목명</th>
-                        <th>보유수량</th>
-                        <th>현재가</th>
-                        <th>평가금액</th>
-                        <th>평가손익</th>
-                        <th>수익률</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in details_kr %}
-                    <tr class="clickable-row" data-href="{{ url_for('chart_view', code=item.pdno|default('')) }}">
-                        <td data-label="종목명">
-                            {{ item.prdt_name|default('N/A') }}
-                            <small style="color: #a0c8e8; display: block;">{{ item.trad_dvsn_name|default('') }}</small>
-                        </td>
-                        <td data-label="보유수량">{{ "{:,.0f}".format(item.hldg_qty|default(0)|int) }}</td>
-                        <td data-label="현재가">{{ "{:,.0f}".format(item.prpr|default(0)|int) }}</td>
-                        <td data-label="평가금액">{{ "{:,.0f}".format(item.evlu_amt|default(0)|int) }}</td>
-                        <td data-label="평가손익" class="{% if (item.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
-                            {{ "{:,.0f}".format(item.evlu_pfls_amt|default(0)|int) }}
-                        </td>
-                        <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                            {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }} %
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" style="text-align: center; padding: 30px;">보유 주식이 없습니다.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <p class="section-title">보유 종목 · 국내</p>
+            <div class="holdings-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>종목</th>
+                            <th>보유수량</th>
+                            <th>현재가</th>
+                            <th>평가금액</th>
+                            <th>평가손익</th>
+                            <th>수익률</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in details_kr %}
+                        <tr class="clickable-row" data-href="{{ url_for('chart_view', code=item.pdno|default('')) }}">
+                            <td>
+                                <div class="stock-name">{{ item.prdt_name|default('N/A') }}</div>
+                                <div class="stock-sub">{{ item.trad_dvsn_name|default('') }}</div>
+                            </td>
+                            <td data-label="보유수량">{{ "{:,.0f}".format(item.hldg_qty|default(0)|int) }}주</td>
+                            <td data-label="현재가">{{ "{:,.0f}".format(item.prpr|default(0)|int) }}원</td>
+                            <td data-label="평가금액">{{ "{:,.0f}".format(item.evlu_amt|default(0)|int) }}원</td>
+                            <td data-label="평가손익" class="{% if (item.evlu_pfls_amt|default(0)|int) >= 0 %}profit{% else %}loss{% endif %}">
+                                {{ "{:,.0f}".format(item.evlu_pfls_amt|default(0)|int) }}원
+                            </td>
+                            <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                                {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }}%
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-row"><td colspan="6">보유 종목이 없습니다</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div id="overseas-view">
+        <!-- 해외 뷰 -->
+        <div id="overseas-view" style="display:none">
             <div class="summary-grid">
                 <div class="summary-card">
-                    <h3>총매입금액</h3>
-                    <p>{{ "{:,.2f}".format(summary_us.frcr_pchs_amt1|default(0)|float) }}<span class="currency">USD</span></p>
+                    <div class="label">총매입금액</div>
+                    <div class="amount">{{ "{:,.2f}".format(summary_us.frcr_pchs_amt1|default(0)|float) }}<span class="unit">USD</span></div>
                 </div>
                 <div class="summary-card">
-                    <h3>총평가금액</h3>
-                    <p>{{ "{:,.2f}".format(summary_us.total_evaluation_us|default(0)|float) }}<span class="currency">USD</span></p>
+                    <div class="label">총평가금액</div>
+                    <div class="amount">{{ "{:,.2f}".format(summary_us.total_evaluation_us|default(0)|float) }}<span class="unit">USD</span></div>
                 </div>
-                 <div class="summary-card {% if (summary_us.ovrs_rlzt_pfls_amt|default(0)|float) >= 0 %}profit-border{% else %}loss-border{% endif %}">
-                    <h3>실현손익</h3>
-                     <p class="{% if (summary_us.ovrs_rlzt_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                        {{ "{:,.2f}".format(summary_us.ovrs_rlzt_pfls_amt|default(0)|float) }}<span class="currency">USD</span>
-                    </p>
+                <div class="summary-card">
+                    <div class="label">실현손익</div>
+                    <div class="amount {% if (summary_us.ovrs_rlzt_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                        {{ "{:,.2f}".format(summary_us.ovrs_rlzt_pfls_amt|default(0)|float) }}<span class="unit">USD</span>
+                    </div>
                 </div>
-                <div class="summary-card {% if (summary_us.ovrs_tot_pfls|default(0)|float) >= 0 %}profit-border{% else %}loss-border{% endif %}">
-                    <h3>총평가손익</h3>
-                    <p class="{% if (summary_us.ovrs_tot_pfls|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                        {{ "{:,.2f}".format(summary_us.ovrs_tot_pfls|default(0)|float) }}<span class="currency">USD</span>
-                    </p>
+                <div class="summary-card">
+                    <div class="label">총평가손익</div>
+                    <div class="amount {% if (summary_us.ovrs_tot_pfls|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                        {{ "{:,.2f}".format(summary_us.ovrs_tot_pfls|default(0)|float) }}<span class="unit">USD</span>
+                    </div>
                 </div>
             </div>
 
-            <h2>보유 종목 (해외)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>종목명</th>
-                        <th>보유수량</th>
-                        <th>현재가</th>
-                        <th>평가금액</th>
-                        <th>평가손익</th>
-                        <th>수익률</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in details_us %}
-                    <tr class="clickable-row" data-href="{{ url_for('chart_view_us', symbol=item.ovrs_pdno|default('')) }}">
-                         <td data-label="종목명">{{ item.ovrs_item_name|default('N/A') }}</td>
-                        <td data-label="보유수량">{{ "{:,.0f}".format(item.ovrs_cblc_qty|default(0)|int) }}</td>
-                        <td data-label="현재가">${{ "{:,.2f}".format(item.now_pric2|default(0)|float) }}</td>
-                        <td data-label="평가금액">${{ "{:,.2f}".format(item.ovrs_stck_evlu_amt|default(0)|float) }}</td>
-                        <td data-label="평가손익" class="{% if (item.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                            ${{ "{:,.2f}".format(item.frcr_evlu_pfls_amt|default(0)|float) }}
-                        </td>
-                        <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
-                            {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }} %
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" style="text-align: center; padding: 30px;">보유 주식이 없습니다.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <p class="section-title">보유 종목 · 해외</p>
+            <div class="holdings-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>종목</th>
+                            <th>보유수량</th>
+                            <th>현재가</th>
+                            <th>평가금액</th>
+                            <th>평가손익</th>
+                            <th>수익률</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in details_us %}
+                        <tr class="clickable-row" data-href="{{ url_for('chart_view_us', symbol=item.ovrs_pdno|default('')) }}">
+                            <td>
+                                <div class="stock-name">{{ item.ovrs_item_name|default('N/A') }}</div>
+                            </td>
+                            <td data-label="보유수량">{{ "{:,.0f}".format(item.ovrs_cblc_qty|default(0)|int) }}주</td>
+                            <td data-label="현재가">${{ "{:,.2f}".format(item.now_pric2|default(0)|float) }}</td>
+                            <td data-label="평가금액">${{ "{:,.2f}".format(item.ovrs_stck_evlu_amt|default(0)|float) }}</td>
+                            <td data-label="평가손익" class="{% if (item.frcr_evlu_pfls_amt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                                ${{ "{:,.2f}".format(item.frcr_evlu_pfls_amt|default(0)|float) }}
+                            </td>
+                            <td data-label="수익률" class="{% if (item.evlu_pfls_rt|default(0)|float) >= 0 %}profit{% else %}loss{% endif %}">
+                                {{ "%.2f"|format(item.evlu_pfls_rt|default(0)|float) }}%
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-row"><td colspan="6">보유 종목이 없습니다</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
+        function switchMarket(overseas) {
+            document.getElementById('domestic-view').style.display = overseas ? 'none' : 'block';
+            document.getElementById('overseas-view').style.display = overseas ? 'block' : 'none';
+            document.getElementById('btn-domestic').classList.toggle('active', !overseas);
+            document.getElementById('btn-overseas').classList.toggle('active', overseas);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const clickableRows = document.querySelectorAll('tr[data-href]');
-            clickableRows.forEach(row => {
+            document.querySelectorAll('tr[data-href]').forEach(row => {
                 row.addEventListener('click', () => {
-                    if (row.dataset.href) {
-                        window.location.href = row.dataset.href;
-                    }
+                    if (row.dataset.href) window.location.href = row.dataset.href;
                 });
-            });
-
-            const marketSwitch = document.getElementById('market-switch');
-            const domesticView = document.getElementById('domestic-view');
-            const overseasView = document.getElementById('overseas-view');
-
-            marketSwitch.addEventListener('change', () => {
-                if (marketSwitch.checked) {
-                    domesticView.style.display = 'none';
-                    overseasView.style.display = 'block';
-                } else {
-                    domesticView.style.display = 'block';
-                    overseasView.style.display = 'none';
-                }
             });
         });
     </script>
