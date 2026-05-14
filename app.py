@@ -15,6 +15,7 @@ ACNT_PRDT_CD = os.getenv("ACNT_PRDT_CD")
 
 TOKEN_CACHE_PATH        = Path(os.getenv("TOKEN_CACHE_PATH", "/app/cache/token_cache.json"))
 TOKEN_REFRESH_MARGIN_MIN = 5
+KST = datetime.timezone(datetime.timedelta(hours=9), "KST")
 
 app = Flask(__name__)
 app.secret_key = API_KEY_SEC or 'fallback-secret'
@@ -28,7 +29,8 @@ _token_lock = threading.Lock()
 # ── 토큰 관리 ──────────────────────────────────────────────────────────────
 
 def _parse_expiry(s):
-    return datetime.datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+    exp = datetime.datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+    return exp.replace(tzinfo=KST)
 
 def _token_is_valid(info):
     exp_str = info.get('access_token_token_expired')
@@ -38,7 +40,7 @@ def _token_is_valid(info):
         exp = _parse_expiry(exp_str)
     except Exception:
         return False
-    return datetime.datetime.now() < exp - datetime.timedelta(minutes=TOKEN_REFRESH_MARGIN_MIN)
+    return datetime.datetime.now(KST) < exp - datetime.timedelta(minutes=TOKEN_REFRESH_MARGIN_MIN)
 
 def load_cached_token():
     if not TOKEN_CACHE_PATH.exists():

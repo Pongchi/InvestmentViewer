@@ -267,12 +267,15 @@
     // Token expiry check
     const tokenExp = "{{ token_exp }}";
     if (tokenExp && tokenExp !== 'N/A') {
-      const expDate = new Date(tokenExp.replace(' ', 'T'));
+      const expDate = new Date(`${tokenExp.replace(' ', 'T')}+09:00`);
       const now = new Date();
       const minsLeft = (expDate - now) / 60000;
-      if (minsLeft < 30) {
+      if (!Number.isFinite(minsLeft) || minsLeft <= 0) {
         document.getElementById('tokenDot').className = 'dot red';
-        document.getElementById('tokenText').textContent = `만료 ${Math.max(0, Math.round(minsLeft))}분 전`;
+        document.getElementById('tokenText').textContent = '만료됨';
+      } else if (minsLeft < 30) {
+        document.getElementById('tokenDot').className = 'dot red';
+        document.getElementById('tokenText').textContent = `곧 만료 (${Math.round(minsLeft)}분 남음)`;
       } else {
         document.getElementById('tokenText').textContent = `유효 (${Math.round(minsLeft / 60)}시간 남음)`;
       }
